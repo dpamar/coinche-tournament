@@ -161,17 +161,20 @@ class MatchSheetView {
         const isPlayed = match.isPlayed;
 
         if (isPlayed) {
-            // Match déjà joué - affichage en vert avec scores
+            // Match déjà joué - affichage en vert avec scores et vainqueur en bleu
+            const team1Won = match.score1 > match.score2;
+            const team2Won = match.score2 > match.score1;
+
             return `
                 <div class="match-card match-played">
-                    <div class="match-teams">
-                        <div class="team">${escapeHtml(team1Name)}</div>
-                        <div class="team-score">${match.score1}</div>
+                    <div class="match-team-result ${team1Won ? 'winner' : ''}">
+                        <span class="team-name">${escapeHtml(team1Name)}</span>
+                        <span class="team-score">${match.score1}</span>
                     </div>
                     <div class="vs">VS</div>
-                    <div class="match-teams">
-                        <div class="team">${escapeHtml(team2Name)}</div>
-                        <div class="team-score">${match.score2}</div>
+                    <div class="match-team-result ${team2Won ? 'winner' : ''}">
+                        <span class="team-name">${escapeHtml(team2Name)}</span>
+                        <span class="team-score">${match.score2}</span>
                     </div>
                 </div>
             `;

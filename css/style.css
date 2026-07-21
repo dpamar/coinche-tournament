@@ -327,6 +327,33 @@ tr:active {
     background: #d1fae5;
 }
 
+.match-team-result {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    border-radius: 8px;
+    margin-bottom: var(--spacing-xs);
+    background: var(--bg);
+}
+
+.match-team-result.winner {
+    background: var(--primary);
+    color: white;
+    font-weight: 700;
+}
+
+.match-team-result .team-name {
+    flex: 1;
+    font-weight: 600;
+}
+
+.match-team-result .team-score {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-left: var(--spacing-md);
+}
+
 .match-teams {
     display: flex;
     flex-direction: column;
