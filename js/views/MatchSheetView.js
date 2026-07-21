@@ -62,20 +62,23 @@ class MatchSheetView {
         this.tournament.pools.forEach((pool, poolIndex) => {
             const poolName = `Poule ${String.fromCharCode(65 + poolIndex)}`;
 
-            // Récupérer tous les matches non joués de cette poule
-            const unplayedMatches = pool.matches.filter(m => !m.isPlayed);
+            // Déterminer le round actuel de cette poule
+            const currentRound = this.getCurrentRoundForPool(pool);
 
-            if (unplayedMatches.length === 0) {
+            if (currentRound === null) {
                 return; // Skip cette poule si tous les matches sont joués
             }
 
+            // Récupérer les matches du round actuel
+            const roundMatches = this.getRoundMatches(pool, currentRound);
+
             html += `<div class="match-sheet-pool">`;
-            html += `<h3>${escapeHtml(poolName)}</h3>`;
+            html += `<h3>${escapeHtml(poolName)} - Round ${currentRound + 1}</h3>`;
             html += `<div class="matches-grid">`;
 
-            // Afficher tous les matches non joués
-            unplayedMatches.forEach((match, idx) => {
-                const matchIndex = pool.matches.indexOf(match);
+            // Afficher les matches du round actuel
+            roundMatches.forEach(matchIndex => {
+                const match = pool.matches[matchIndex];
                 const matchId = `pool-${poolIndex}-${matchIndex}`;
                 html += this.renderMatchCard(match, matchId, poolIndex, matchIndex);
             });
@@ -85,6 +88,44 @@ class MatchSheetView {
 
         html += '</div>';
         return html;
+    }
+
+    /**
+     * Détermine le round actuel pour une poule (0, 1 ou 2)
+     */
+    getCurrentRoundForPool(pool) {
+        const rounds = [
+            [0, 1], // Round 1: matches 0-1
+            [2, 3], // Round 2: matches 2-3
+            [4, 5]  // Round 3: matches 4-5
+        ];
+
+        // Chercher le premier round qui a au moins un match non joué
+        for (let roundIndex = 0; roundIndex < rounds.length; roundIndex++) {
+            const matchIndices = rounds[roundIndex];
+            const hasUnplayedMatch = matchIndices.some(idx =>
+                idx < pool.matches.length && !pool.matches[idx].isPlayed
+            );
+
+            if (hasUnplayedMatch) {
+                return roundIndex;
+            }
+        }
+
+        return null; // Tous les matches sont joués
+    }
+
+    /**
+     * Retourne les indices des matches d'un round donné
+     */
+    getRoundMatches(pool, roundIndex) {
+        const rounds = [
+            [0, 1], // Round 1
+            [2, 3], // Round 2
+            [4, 5]  // Round 3
+        ];
+
+        return rounds[roundIndex].filter(idx => idx < pool.matches.length);
     }
 
     /**
