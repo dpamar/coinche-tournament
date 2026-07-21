@@ -1454,3 +1454,142 @@ tbody tr:last-child td {
         color: #333;
     }
 }
+
+/* Match Sheet View - Card Layout */
+.match-sheet-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.match-sheet-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.match-sheet-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.match-sheet-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+}
+
+.match-sheet-pools,
+.match-sheet-bracket {
+    margin-bottom: 2rem;
+}
+
+.match-sheet-pool {
+    margin-bottom: 3rem;
+}
+
+.match-sheet-pool h3,
+.match-sheet-bracket h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.matches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.match-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    transition: all 0.2s;
+}
+
+.match-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.match-card.editing {
+    border-color: var(--primary-color);
+}
+
+.match-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.match-teams {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.match-teams .team {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 0.75rem;
+    background: var(--background);
+    border-radius: var(--radius-md);
+}
+
+.match-teams .vs {
+    text-align: center;
+    font-weight: 700;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.team-input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.team-input label {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.team-input .score-input {
+    font-size: 1.5rem;
+    padding: 0.75rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-weight: 700;
+}
+
+.team-input .score-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.match-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.match-sheet-actions {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .matches-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .match-sheet-container {
+        padding: 1rem;
+    }
+}

@@ -1,10 +1,11 @@
 /**
- * MatchSheetView - Vue pour la feuille de matches
- * Génère une feuille imprimable des matches à jouer
+ * MatchSheetView - Vue pour la feuille de matches avec saisie de scores
+ * Affiche les matches à jouer et permet de saisir les scores directement
  */
 class MatchSheetView {
     constructor(tournament) {
         this.tournament = tournament;
+        this.editingMatchId = null;
     }
 
     render() {
@@ -14,7 +15,7 @@ class MatchSheetView {
                     <h2>Feuille de Matches</h2>
                     <p class="error-message">Aucun tournoi en cours.</p>
                     <div class="action-buttons">
-                        ${createSecondaryButton('Retour à l\'accueil', 'goToHome')}
+                        ${createSecondaryButton('Retour à l\'accueil', 'router.navigate(\'home\')')}
                     </div>
                 </div>
             `;
@@ -24,8 +25,7 @@ class MatchSheetView {
             <div class="match-sheet-container">
                 <div class="match-sheet-header">
                     <h1>${escapeHtml(this.tournament.name)}</h1>
-                    <h2>Feuille de Matches</h2>
-                    <p class="match-sheet-date">Date: ${this.getCurrentDate()}</p>
+                    <h2>Feuille de Matches - Saisie Rapide</h2>
                 </div>
         `;
 
@@ -39,8 +39,7 @@ class MatchSheetView {
         }
 
         content += `
-                <div class="match-sheet-actions no-print">
-                    ${createPrimaryButton('Imprimer', 'window.print()')}
+                <div class="match-sheet-actions">
                     ${createSecondaryButton('Retour', 'goBack()')}
                 </div>
             </div>
@@ -50,16 +49,7 @@ class MatchSheetView {
     }
 
     /**
-     * Retourne la date actuelle formatée
-     */
-    getCurrentDate() {
-        const now = new Date();
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return now.toLocaleDateString('fr-FR', options);
-    }
-
-    /**
-     * Rend la feuille pour la phase de poules
+     * Rend la feuille pour la phase de poules avec saisie de scores
      */
     renderPoolSheet() {
         if (!this.tournament.pools || this.tournament.pools.length === 0) {
@@ -71,20 +61,26 @@ class MatchSheetView {
         // Parcourir chaque poule
         this.tournament.pools.forEach((pool, poolIndex) => {
             const poolName = `Poule ${String.fromCharCode(65 + poolIndex)}`;
-            html += `<div class="match-sheet-pool">`;
-            html += `<h3>${escapeHtml(poolName)}</h3>`;
 
-            // Déterminer le prochain round non joué
-            const nextRound = this.getNextRoundForPool(pool);
+            // Récupérer tous les matches non joués de cette poule
+            const unplayedMatches = pool.matches.filter(m => !m.isPlayed);
 
-            if (nextRound !== null) {
-                html += this.renderRoundMatches(pool, nextRound, poolIndex);
-            } else {
-                // Tous les matches sont joués
-                html += '<p class="round-complete">Tous les matches de cette poule sont terminés.</p>';
+            if (unplayedMatches.length === 0) {
+                return; // Skip cette poule si tous les matches sont joués
             }
 
-            html += `</div>`;
+            html += `<div class="match-sheet-pool">`;
+            html += `<h3>${escapeHtml(poolName)}</h3>`;
+            html += `<div class="matches-grid">`;
+
+            // Afficher tous les matches non joués
+            unplayedMatches.forEach((match, idx) => {
+                const matchIndex = pool.matches.indexOf(match);
+                const matchId = `pool-${poolIndex}-${matchIndex}`;
+                html += this.renderMatchCard(match, matchId, poolIndex, matchIndex);
+            });
+
+            html += `</div></div>`;
         });
 
         html += '</div>';
@@ -92,88 +88,51 @@ class MatchSheetView {
     }
 
     /**
-     * Détermine le prochain round non joué pour une poule
-     * Retourne le numéro du round (0, 1, ou 2) ou null si tous sont joués
+     * Rend une carte de match avec saisie de score
      */
-    getNextRoundForPool(pool) {
-        const matches = pool.matches;
+    renderMatchCard(match, matchId, poolIndex, matchIndex) {
+        const team1 = this.tournament.teams.get(match.team1Id);
+        const team2 = this.tournament.teams.get(match.team2Id);
+        const team1Name = team1 ? team1.name : 'Équipe inconnue';
+        const team2Name = team2 ? team2.name : 'Équipe inconnue';
 
-        // Pour les poules de 4, les matches sont organisés en 3 rounds de 2 matches
-        // Round 0: matches 0-1 (indices 0 et 1)
-        // Round 1: matches 2-3 (indices 2 et 3)
-        // Round 2: matches 4-5 (indices 4 et 5)
+        const isEditing = this.editingMatchId === matchId;
 
-        const rounds = [
-            [0, 1], // Round 1
-            [2, 3], // Round 2
-            [4, 5]  // Round 3
-        ];
-
-        // Chercher le premier round qui a au moins un match non joué
-        for (let roundIndex = 0; roundIndex < rounds.length; roundIndex++) {
-            const matchIndices = rounds[roundIndex];
-            const hasUnplayedMatch = matchIndices.some(idx =>
-                idx < matches.length && !matches[idx].isPlayed
-            );
-
-            if (hasUnplayedMatch) {
-                return roundIndex;
-            }
+        if (isEditing) {
+            return `
+                <div class="match-card editing">
+                    <div class="match-teams">
+                        <div class="team-input">
+                            <label>${escapeHtml(team1Name)}</label>
+                            <input type="number" id="score1-${matchId}" min="0" class="score-input" autofocus>
+                        </div>
+                        <div class="vs">VS</div>
+                        <div class="team-input">
+                            <label>${escapeHtml(team2Name)}</label>
+                            <input type="number" id="score2-${matchId}" min="0" class="score-input">
+                        </div>
+                    </div>
+                    <div class="match-actions">
+                        ${createPrimaryButton('Valider', `window.matchSheetView.saveScore('${matchId}', ${poolIndex}, ${matchIndex})`)}
+                        ${createSecondaryButton('Annuler', `window.matchSheetView.cancelEdit()`)}
+                    </div>
+                    <div id="error-${matchId}" class="error-message" style="display: none;"></div>
+                </div>
+            `;
+        } else {
+            return `
+                <div class="match-card">
+                    <div class="match-teams">
+                        <div class="team">${escapeHtml(team1Name)}</div>
+                        <div class="vs">VS</div>
+                        <div class="team">${escapeHtml(team2Name)}</div>
+                    </div>
+                    <div class="match-actions">
+                        ${createPrimaryButton('Saisir Score', `window.matchSheetView.editMatch('${matchId}')`)}
+                    </div>
+                </div>
+            `;
         }
-
-        return null; // Tous les matches sont joués
-    }
-
-    /**
-     * Rend les matches d'un round spécifique
-     */
-    renderRoundMatches(pool, roundIndex, poolIndex) {
-        const rounds = [
-            [0, 1], // Round 1
-            [2, 3], // Round 2
-            [4, 5]  // Round 3
-        ];
-
-        const matchIndices = rounds[roundIndex];
-        const roundNumber = roundIndex + 1;
-
-        let html = `<div class="match-sheet-round">`;
-        html += `<h4>Round ${roundNumber}</h4>`;
-        html += `<table class="match-sheet-table">`;
-        html += `<thead>
-            <tr>
-                <th>Match</th>
-                <th>Équipe 1</th>
-                <th>Score</th>
-                <th>Équipe 2</th>
-                <th>Table</th>
-            </tr>
-        </thead>`;
-        html += `<tbody>`;
-
-        matchIndices.forEach((matchIdx, position) => {
-            if (matchIdx < pool.matches.length) {
-                const match = pool.matches[matchIdx];
-                const team1 = this.tournament.teams.get(match.team1Id);
-                const team2 = this.tournament.teams.get(match.team2Id);
-                const team1Name = team1 ? team1.name : 'Équipe inconnue';
-                const team2Name = team2 ? team2.name : 'Équipe inconnue';
-                const matchNumber = matchIdx + 1;
-
-                html += `
-                    <tr>
-                        <td class="match-number">Match ${matchNumber}</td>
-                        <td class="team-name">${escapeHtml(team1Name)}</td>
-                        <td class="score-cell">_____ - _____</td>
-                        <td class="team-name">${escapeHtml(team2Name)}</td>
-                        <td class="table-number">Table ${position + 1}</td>
-                    </tr>
-                `;
-            }
-        });
-
-        html += `</tbody></table></div>`;
-        return html;
     }
 
     /**
@@ -198,90 +157,220 @@ class MatchSheetView {
 
         let html = `<div class="match-sheet-bracket">`;
         html += `<h3>${escapeHtml(roundName)}</h3>`;
-        html += `<table class="match-sheet-table">`;
-        html += `<thead>
-            <tr>
-                <th>Match</th>
-                <th>Équipe 1</th>
-                <th>Score</th>
-                <th>Équipe 2</th>
-                <th>Table</th>
-            </tr>
-        </thead>`;
-        html += `<tbody>`;
+        html += `<div class="matches-grid">`;
 
         currentRound.forEach((match, matchIndex) => {
-            const team1 = this.tournament.teams.get(match.team1Id);
-            const team2 = this.tournament.teams.get(match.team2Id);
-
-            // Si les équipes ne sont pas encore définies, afficher un placeholder
-            if (!team1 || !team2) {
-                html += `
-                    <tr class="match-pending">
-                        <td class="match-number">Match ${matchIndex + 1}</td>
-                        <td class="team-name" colspan="3">En attente des résultats précédents</td>
-                        <td class="table-number">-</td>
-                    </tr>
-                `;
-            } else {
-                const team1Name = team1.name;
-                const team2Name = team2.name;
-
-                html += `
-                    <tr>
-                        <td class="match-number">Match ${matchIndex + 1}</td>
-                        <td class="team-name">${escapeHtml(team1Name)}</td>
-                        <td class="score-cell">_____ - _____</td>
-                        <td class="team-name">${escapeHtml(team2Name)}</td>
-                        <td class="table-number">Table ${matchIndex + 1}</td>
-                    </tr>
-                `;
+            if (!match.isPlayed) {
+                const matchId = `bracket-${currentRoundIndex}-${matchIndex}`;
+                html += this.renderBracketMatchCard(match, matchId, currentRoundIndex, matchIndex);
             }
         });
 
-        html += `</tbody></table></div>`;
+        html += `</div></div>`;
         return html;
     }
 
     /**
+     * Rend une carte de match bracket avec saisie
+     */
+    renderBracketMatchCard(match, matchId, roundIndex, matchIndex) {
+        const team1 = this.tournament.teams.get(match.team1Id);
+        const team2 = this.tournament.teams.get(match.team2Id);
+
+        if (!team1 || !team2) {
+            return `
+                <div class="match-card disabled">
+                    <div class="match-teams">
+                        <div class="team">En attente...</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        const team1Name = team1.name;
+        const team2Name = team2.name;
+        const isEditing = this.editingMatchId === matchId;
+
+        if (isEditing) {
+            return `
+                <div class="match-card editing">
+                    <div class="match-teams">
+                        <div class="team-input">
+                            <label>${escapeHtml(team1Name)}</label>
+                            <input type="number" id="score1-${matchId}" min="0" class="score-input" autofocus>
+                        </div>
+                        <div class="vs">VS</div>
+                        <div class="team-input">
+                            <label>${escapeHtml(team2Name)}</label>
+                            <input type="number" id="score2-${matchId}" min="0" class="score-input">
+                        </div>
+                    </div>
+                    <div class="match-actions">
+                        ${createPrimaryButton('Valider', `window.matchSheetView.saveBracketScore('${matchId}', ${roundIndex}, ${matchIndex})`)}
+                        ${createSecondaryButton('Annuler', `window.matchSheetView.cancelEdit()`)}
+                    </div>
+                    <div id="error-${matchId}" class="error-message" style="display: none;"></div>
+                </div>
+            `;
+        } else {
+            return `
+                <div class="match-card">
+                    <div class="match-teams">
+                        <div class="team">${escapeHtml(team1Name)}</div>
+                        <div class="vs">VS</div>
+                        <div class="team">${escapeHtml(team2Name)}</div>
+                    </div>
+                    <div class="match-actions">
+                        ${createPrimaryButton('Saisir Score', `window.matchSheetView.editMatch('${matchId}')`)}
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    /**
      * Retourne l'index du round actuel du bracket
-     * (premier round avec au moins un match non joué)
      */
     getCurrentBracketRound() {
         const bracket = this.tournament.bracket;
-
         for (let i = 0; i < bracket.rounds.length; i++) {
-            const round = bracket.rounds[i];
-            const hasUnplayedMatch = round.some(match => !match.isPlayed);
-
+            const hasUnplayedMatch = bracket.rounds[i].some(m => !m.isPlayed);
             if (hasUnplayedMatch) {
                 return i;
             }
         }
+        return null;
+    }
 
-        return null; // Tous les rounds sont joués
+    /**
+     * Active le mode édition pour un match
+     */
+    editMatch(matchId) {
+        this.editingMatchId = matchId;
+        this.rerender();
+    }
+
+    /**
+     * Annule l'édition
+     */
+    cancelEdit() {
+        this.editingMatchId = null;
+        this.rerender();
+    }
+
+    /**
+     * Sauvegarde le score d'un match de poule
+     */
+    saveScore(matchId, poolIndex, matchIndex) {
+        const score1Input = document.getElementById(`score1-${matchId}`);
+        const score2Input = document.getElementById(`score2-${matchId}`);
+        const errorDiv = document.getElementById(`error-${matchId}`);
+
+        const score1 = parseInt(score1Input.value);
+        const score2 = parseInt(score2Input.value);
+
+        // Validation
+        if (isNaN(score1) || isNaN(score2) || score1 < 0 || score2 < 0) {
+            errorDiv.textContent = 'Les scores doivent être des nombres positifs';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        // Enregistrer le score
+        const match = this.tournament.pools[poolIndex].matches[matchIndex];
+        match.setScore(score1, score2);
+
+        // Mettre à jour les statistiques
+        this.tournament.updateTeamStats(match);
+
+        // Sauvegarder
+        this.tournament.save();
+
+        // Retour à la vue normale
+        this.editingMatchId = null;
+        this.rerender();
+    }
+
+    /**
+     * Sauvegarde le score d'un match de bracket
+     */
+    saveBracketScore(matchId, roundIndex, matchIndex) {
+        const score1Input = document.getElementById(`score1-${matchId}`);
+        const score2Input = document.getElementById(`score2-${matchId}`);
+        const errorDiv = document.getElementById(`error-${matchId}`);
+
+        const score1 = parseInt(score1Input.value);
+        const score2 = parseInt(score2Input.value);
+
+        // Validation
+        if (isNaN(score1) || isNaN(score2) || score1 < 0 || score2 < 0) {
+            errorDiv.textContent = 'Les scores doivent être des nombres positifs';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        if (score1 === score2) {
+            errorDiv.textContent = 'Il ne peut pas y avoir d\'égalité dans un match éliminatoire';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        // Enregistrer le score
+        const match = this.tournament.bracket.rounds[roundIndex][matchIndex];
+        match.setScore(score1, score2);
+
+        // Mettre à jour les statistiques
+        this.tournament.updateTeamStats(match);
+
+        // Vérifier si le round est terminé
+        const roundComplete = this.tournament.bracket.rounds[roundIndex].every(m => m.isPlayed);
+
+        if (roundComplete) {
+            const expectedRounds = Math.log2(this.tournament.bracket.teams.length);
+            const isFinale = roundIndex === expectedRounds - 1;
+
+            if (isFinale) {
+                const champion = this.tournament.bracket.getChampion();
+                const championTeam = this.tournament.teams.get(champion);
+                this.tournament.phase = 'finished';
+                alert(`Félicitations ! ${championTeam.name} remporte le tournoi !`);
+            } else {
+                const advanced = this.tournament.bracket.advanceWinners(roundIndex);
+                if (advanced) {
+                    const nextRoundName = this.tournament.bracket.getRoundName(roundIndex + 1);
+                    alert(`Tous les matches sont terminés ! Passage aux ${nextRoundName}`);
+                }
+            }
+        }
+
+        // Sauvegarder
+        this.tournament.save();
+
+        // Retour à la vue normale
+        this.editingMatchId = null;
+        this.rerender();
+    }
+
+    /**
+     * Re-render la vue
+     */
+    rerender() {
+        app.renderView(this);
     }
 
     attachEventListeners() {
-        // Pas besoin d'event listeners spécifiques pour cette vue
-        // Les boutons utilisent des fonctions globales déjà définies
+        // Les événements sont gérés par le système global data-action
+        window.matchSheetView = this;
     }
 }
 
-// Fonction globale pour revenir en arrière
+// Global function to go back
 function goBack() {
-    if (typeof router !== 'undefined') {
-        // Retourner à la vue appropriée selon la phase
-        if (app.tournament) {
-            if (app.tournament.phase === 'pool') {
-                router.navigate('pool-phase');
-            } else if (app.tournament.phase === 'bracket') {
-                router.navigate('bracket');
-            } else {
-                router.navigate('home');
-            }
-        } else {
-            router.navigate('home');
-        }
+    if (app.tournament.phase === 'pool') {
+        router.navigate('pool-phase');
+    } else if (app.tournament.phase === 'bracket') {
+        router.navigate('bracket');
+    } else {
+        router.navigate('home');
     }
 }
