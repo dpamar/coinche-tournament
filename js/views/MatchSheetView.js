@@ -56,27 +56,28 @@ class MatchSheetView {
             return '<p class="no-matches">Aucune poule configurée.</p>';
         }
 
+        // Déterminer le round global (minimum de tous les rounds des poules)
+        const globalRound = this.getGlobalCurrentRound();
+
+        if (globalRound === null) {
+            return '<p class="no-matches">Tous les matches de poules sont terminés !</p>';
+        }
+
         let html = '<div class="match-sheet-pools">';
+        html += `<div class="match-sheet-header"><h2>Round ${globalRound + 1}</h2></div>`;
 
         // Parcourir chaque poule
         this.tournament.pools.forEach((pool, poolIndex) => {
             const poolName = `Poule ${String.fromCharCode(65 + poolIndex)}`;
 
-            // Déterminer le round actuel de cette poule
-            const currentRound = this.getCurrentRoundForPool(pool);
-
-            if (currentRound === null) {
-                return; // Skip cette poule si tous les matches sont joués
-            }
-
-            // Récupérer les matches du round actuel
-            const roundMatches = this.getRoundMatches(pool, currentRound);
+            // Récupérer les matches du round global
+            const roundMatches = this.getRoundMatches(pool, globalRound);
 
             html += `<div class="match-sheet-pool">`;
-            html += `<h3>${escapeHtml(poolName)} - Round ${currentRound + 1}</h3>`;
+            html += `<h3>${escapeHtml(poolName)}</h3>`;
             html += `<div class="matches-grid">`;
 
-            // Afficher les matches du round actuel
+            // Afficher les matches du round global
             roundMatches.forEach(matchIndex => {
                 const match = pool.matches[matchIndex];
                 const matchId = `pool-${poolIndex}-${matchIndex}`;
@@ -88,6 +89,25 @@ class MatchSheetView {
 
         html += '</div>';
         return html;
+    }
+
+    /**
+     * Détermine le round global (minimum parmi toutes les poules)
+     */
+    getGlobalCurrentRound() {
+        let minRound = null;
+
+        this.tournament.pools.forEach(pool => {
+            const poolRound = this.getCurrentRoundForPool(pool);
+
+            if (poolRound !== null) {
+                if (minRound === null || poolRound < minRound) {
+                    minRound = poolRound;
+                }
+            }
+        });
+
+        return minRound;
     }
 
     /**
@@ -138,8 +158,24 @@ class MatchSheetView {
         const team2Name = team2 ? team2.name : 'Équipe inconnue';
 
         const isEditing = this.editingMatchId === matchId;
+        const isPlayed = match.isPlayed;
 
-        if (isEditing) {
+        if (isPlayed) {
+            // Match déjà joué - affichage en vert avec scores
+            return `
+                <div class="match-card match-played">
+                    <div class="match-teams">
+                        <div class="team">${escapeHtml(team1Name)}</div>
+                        <div class="team-score">${match.score1}</div>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="match-teams">
+                        <div class="team">${escapeHtml(team2Name)}</div>
+                        <div class="team-score">${match.score2}</div>
+                    </div>
+                </div>
+            `;
+        } else if (isEditing) {
             return `
                 <div class="match-card editing">
                     <div class="match-teams">
@@ -327,31 +363,27 @@ class MatchSheetView {
         // Sauvegarder
         this.tournament.save();
 
-        // Vérifier si le round actuel est terminé
-        const pool = this.tournament.pools[poolIndex];
-        const currentRound = this.getCurrentRoundForPool(pool);
+        // Vérifier si le round global actuel est terminé
+        const globalRound = this.getGlobalCurrentRound();
 
-        if (currentRound !== null) {
-            const roundMatches = this.getRoundMatches(pool, currentRound);
-            const allRoundPlayed = roundMatches.every(idx => pool.matches[idx].isPlayed);
+        if (globalRound !== null) {
+            // Vérifier si TOUS les matches du round global sont terminés (toutes poules confondues)
+            const allGlobalRoundPlayed = this.tournament.pools.every(pool => {
+                const roundMatches = this.getRoundMatches(pool, globalRound);
+                return roundMatches.every(idx => pool.matches[idx].isPlayed);
+            });
 
-            if (allRoundPlayed) {
-                const roundNumber = currentRound + 1;
-                if (currentRound < 2) {
+            if (allGlobalRoundPlayed) {
+                const roundNumber = globalRound + 1;
+                if (globalRound < 2) {
                     alert(`Round ${roundNumber} terminé ! Passage au round suivant.`);
                 } else {
-                    // Dernier round de cette poule
-                    const allPoolsComplete = this.tournament.pools.every(p =>
-                        p.matches.every(m => m.isPlayed)
-                    );
-
-                    if (allPoolsComplete) {
-                        alert('Tous les matches de poules sont terminés ! Vous pouvez passer à la phase finale.');
-                    } else {
-                        alert(`Round ${roundNumber} terminé pour cette poule !`);
-                    }
+                    alert('Tous les matches de poules sont terminés ! Vous pouvez passer à la phase finale.');
                 }
             }
+        } else {
+            // Plus aucun round - tous les matches sont terminés
+            alert('Tous les matches de poules sont terminés ! Vous pouvez passer à la phase finale.');
         }
 
         // Retour à la vue normale

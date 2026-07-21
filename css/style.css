@@ -322,6 +322,11 @@ tr:active {
     box-shadow: var(--shadow-lg);
 }
 
+.match-card.match-played {
+    border-color: var(--success);
+    background: #d1fae5;
+}
+
 .match-teams {
     display: flex;
     flex-direction: column;
