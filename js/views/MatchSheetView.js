@@ -64,7 +64,9 @@ class MatchSheetView {
         }
 
         let html = '<div class="match-sheet-pools">';
-        html += `<div class="match-sheet-header"><h2>Round ${globalRound + 1}</h2></div>`;
+        const isInterPoolRound = globalRound === 3;
+        const roundTitle = isInterPoolRound ? 'Round 4 - Matches Inter-Poules' : `Round ${globalRound + 1}`;
+        html += `<div class="match-sheet-header"><h2>${roundTitle}</h2></div>`;
 
         // Parcourir chaque poule
         this.tournament.pools.forEach((pool, poolIndex) => {
@@ -72,6 +74,11 @@ class MatchSheetView {
 
             // Récupérer les matches du round global
             const roundMatches = this.getRoundMatches(pool, globalRound);
+
+            // Skip si pas de matches pour cette poule dans ce round
+            if (roundMatches.length === 0) {
+                return;
+            }
 
             html += `<div class="match-sheet-pool">`;
             html += `<h3>${escapeHtml(poolName)}</h3>`;
@@ -81,7 +88,8 @@ class MatchSheetView {
             roundMatches.forEach(matchIndex => {
                 const match = pool.matches[matchIndex];
                 const matchId = `pool-${poolIndex}-${matchIndex}`;
-                html += this.renderMatchCard(match, matchId, poolIndex, matchIndex);
+                const isInterPool = matchIndex >= 6;
+                html += this.renderMatchCard(match, matchId, poolIndex, matchIndex, isInterPool);
             });
 
             html += `</div></div>`;
@@ -111,18 +119,30 @@ class MatchSheetView {
     }
 
     /**
-     * Détermine le round actuel pour une poule (0, 1 ou 2)
+     * Détermine le round actuel pour une poule (0, 1, 2 ou 3)
+     * Round 0-2 : matches internes (0-5)
+     * Round 3 : matches inter-poules (6+) si la poule a 5 équipes
      */
     getCurrentRoundForPool(pool) {
         const rounds = [
             [0, 1], // Round 1: matches 0-1
             [2, 3], // Round 2: matches 2-3
-            [4, 5]  // Round 3: matches 4-5
+            [4, 5], // Round 3: matches 4-5
+            []      // Round 4: matches inter-poules (indices 6+)
         ];
+
+        // Récupérer les indices des matches inter-poules (après les 6 premiers)
+        const interPoolIndices = [];
+        for (let i = 6; i < pool.matches.length; i++) {
+            interPoolIndices.push(i);
+        }
+        rounds[3] = interPoolIndices;
 
         // Chercher le premier round qui a au moins un match non joué
         for (let roundIndex = 0; roundIndex < rounds.length; roundIndex++) {
             const matchIndices = rounds[roundIndex];
+            if (matchIndices.length === 0) continue; // Skip si pas de matches dans ce round
+
             const hasUnplayedMatch = matchIndices.some(idx =>
                 idx < pool.matches.length && !pool.matches[idx].isPlayed
             );
@@ -142,8 +162,18 @@ class MatchSheetView {
         const rounds = [
             [0, 1], // Round 1
             [2, 3], // Round 2
-            [4, 5]  // Round 3
+            [4, 5], // Round 3
+            []      // Round 4 (inter-poules)
         ];
+
+        // Si c'est le round 4, récupérer tous les matches inter-poules
+        if (roundIndex === 3) {
+            const interPoolIndices = [];
+            for (let i = 6; i < pool.matches.length; i++) {
+                interPoolIndices.push(i);
+            }
+            return interPoolIndices;
+        }
 
         return rounds[roundIndex].filter(idx => idx < pool.matches.length);
     }
@@ -151,7 +181,7 @@ class MatchSheetView {
     /**
      * Rend une carte de match avec saisie de score
      */
-    renderMatchCard(match, matchId, poolIndex, matchIndex) {
+    renderMatchCard(match, matchId, poolIndex, matchIndex, isInterPool = false) {
         const team1 = this.tournament.teams.get(match.team1Id);
         const team2 = this.tournament.teams.get(match.team2Id);
         const team1Name = team1 ? team1.name : 'Équipe inconnue';
@@ -159,6 +189,7 @@ class MatchSheetView {
 
         const isEditing = this.editingMatchId === matchId;
         const isPlayed = match.isPlayed;
+        const cardClass = isInterPool ? 'match-card-inter-pool' : '';
 
         if (isPlayed) {
             // Match déjà joué - affichage en vert avec scores et vainqueur en bleu
@@ -166,7 +197,7 @@ class MatchSheetView {
             const team2Won = match.score2 > match.score1;
 
             return `
-                <div class="match-card match-played">
+                <div class="match-card match-played ${cardClass}">
                     <div class="match-team-result ${team1Won ? 'winner' : ''}">
                         <span class="team-name">${escapeHtml(team1Name)}</span>
                         <span class="team-score">${match.score1}</span>
@@ -180,7 +211,7 @@ class MatchSheetView {
             `;
         } else if (isEditing) {
             return `
-                <div class="match-card editing">
+                <div class="match-card editing ${cardClass}">
                     <div class="match-teams">
                         <div class="team-input">
                             <label>${escapeHtml(team1Name)}</label>
@@ -201,7 +232,7 @@ class MatchSheetView {
             `;
         } else {
             return `
-                <div class="match-card">
+                <div class="match-card ${cardClass}">
                     <div class="match-teams">
                         <div class="team">${escapeHtml(team1Name)}</div>
                         <div class="vs">VS</div>

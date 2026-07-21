@@ -327,6 +327,20 @@ tr:active {
     background: #d1fae5;
 }
 
+.match-card-inter-pool {
+    border-left: 4px solid var(--warning);
+}
+
+.match-card-inter-pool::before {
+    content: "Inter-poules";
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--warning);
+    text-transform: uppercase;
+    margin-bottom: var(--spacing-xs);
+}
+
 .match-team-result {
     display: flex;
     justify-content: space-between;
