@@ -47,6 +47,7 @@ class HomeView {
                         <div class="action-buttons">
                             ${createPrimaryButton('Créer un Nouveau Tournoi', 'router.navigate(\'setup\')')}
                             ${createSecondaryButton('Importer un Tournoi', 'importTournament()')}
+                            ${createSecondaryButton('Charger un Exemple', 'loadSampleTournament()')}
                         </div>
                     </div>
                 </div>
@@ -221,4 +222,32 @@ function importTournament() {
         reader.readAsText(file);
     };
     input.click();
+}
+
+// Global function for loading sample tournament
+function loadSampleTournament() {
+    // Confirm if there's already a tournament
+    if (app.tournament) {
+        if (!confirm('Un tournoi est déjà en cours. Voulez-vous le remplacer par l\'exemple ?')) {
+            return;
+        }
+    }
+
+    // Fetch sample.json
+    fetch('sample.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Impossible de charger le fichier sample.json');
+            }
+            return response.json();
+        })
+        .then(json => {
+            const tournament = Tournament.fromJSON(json);
+            app.setTournament(tournament);
+            app.renderHome();
+            alert('Exemple de tournoi chargé avec succès !');
+        })
+        .catch(err => {
+            alert('Erreur lors du chargement de l\'exemple : ' + err.message);
+        });
 }
