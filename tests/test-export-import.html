@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Export/Import - Tournoi de Coinche</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #229954;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 400px;
+        }
+        #tournamentInfo {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Export/Import de Tournoi</h1>
+
+    <div class="test-section">
+        <h2>1. Créer un tournoi de test</h2>
+        <button class="btn-primary" onclick="createTestTournament()">Créer un tournoi de test</button>
+        <div id="createStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. État actuel du tournoi</h2>
+        <button class="btn-secondary" onclick="displayTournamentState()">Afficher l'état du tournoi</button>
+        <div id="tournamentInfo"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Export du tournoi</h2>
+        <button class="btn-success" onclick="testExport()">Exporter le tournoi</button>
+        <div id="exportStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Import du tournoi</h2>
+        <button class="btn-success" onclick="testImport()">Importer un tournoi</button>
+        <div id="importStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Vérification</h2>
+        <button class="btn-primary" onclick="verifyIntegrity()">Vérifier l'intégrité</button>
+        <div id="verifyStatus"></div>
+    </div>
+
+    <!-- Include model classes -->
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Bracket.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+
+    <script>
+        let testTournament = null;
+        let exportedData = null;
+
+        function showStatus(elementId, message, type = 'info') {
+            const el = document.getElementById(elementId);
+            el.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function createTestTournament() {
+            try {
+                // Créer un tournoi avec 18 équipes
+                testTournament = new Tournament('Tournoi de Test', 16);
+
+                // Ajouter 18 équipes
+                const teamNames = [
+                    'Les As', 'Les Rois', 'Les Dames', 'Les Valets',
+                    'Les Champions', 'Les Pros', 'Les Experts', 'Les Maîtres',
+                    'Les Légendes', 'Les Héros', 'Les Warriors', 'Les Titans',
+                    'Les Vikings', 'Les Spartans', 'Les Gladiateurs', 'Les Conquérants',
+                    'Les Dragons', 'Les Phoenix'
+                ];
+
+                teamNames.forEach(name => {
+                    testTournament.addTeam(name);
+                });
+
+                // Créer les poules (4 poules de 4 et 1 poule de 2, par exemple)
+                testTournament.createPools([4, 4, 5, 5]);
+
+                // Jouer quelques matches
+                if (testTournament.pools.length > 0) {
+                    const pool = testTournament.pools[0];
+                    if (pool.matches.length > 0) {
+                        // Jouer le premier match
+                        const match = pool.matches[0];
+                        match.setScore(4500, 3200);
+                        testTournament.updateTeamStats(match);
+
+                        // Jouer le deuxième match
+                        if (pool.matches.length > 1) {
+                            const match2 = pool.matches[1];
+                            match2.setScore(3800, 4100);
+                            testTournament.updateTeamStats(match2);
+                        }
+                    }
+                }
+
+                showStatus('createStatus',
+                    `✓ Tournoi créé avec succès !<br>
+                    - Nom: ${testTournament.name}<br>
+                    - Équipes: ${testTournament.teams.size}<br>
+                    - Poules: ${testTournament.pools.length}<br>
+                    - Phase: ${testTournament.phase}`,
+                    'success');
+
+                displayTournamentState();
+            } catch (err) {
+                showStatus('createStatus', `✗ Erreur: ${err.message}`, 'error');
+            }
+        }
+
+        function displayTournamentState() {
+            const el = document.getElementById('tournamentInfo');
+
+            if (!testTournament) {
+                el.innerHTML = '<div class="status info">Aucun tournoi actif</div>';
+                return;
+            }
+
+            let html = '<div class="status success">';
+            html += `<strong>Tournoi: ${testTournament.name}</strong><br>`;
+            html += `Phase: ${testTournament.phase}<br>`;
+            html += `Équipes: ${testTournament.teams.size}<br>`;
+            html += `Poules: ${testTournament.pools.length}<br>`;
+
+            if (testTournament.bracket) {
+                html += `Bracket initialisé: Oui (${testTournament.bracket.rounds.length} rounds)<br>`;
+            } else {
+                html += 'Bracket initialisé: Non<br>';
+            }
+
+            // Statistiques des matches
+            let totalMatches = 0;
+            let playedMatches = 0;
+            testTournament.pools.forEach(pool => {
+                totalMatches += pool.matches.length;
+                playedMatches += pool.matches.filter(m => m.isPlayed).length;
+            });
+            html += `Matches de poule: ${playedMatches}/${totalMatches} joués<br>`;
+
+            html += '</div>';
+
+            // Afficher un aperçu JSON
+            html += '<h4>Aperçu JSON (structure):</h4>';
+            html += '<pre>' + JSON.stringify(testTournament.toJSON(), null, 2).substring(0, 500) + '...\n</pre>';
+
+            el.innerHTML = html;
+        }
+
+        function testExport() {
+            if (!testTournament) {
+                showStatus('exportStatus', '✗ Aucun tournoi à exporter. Créez d\'abord un tournoi de test.', 'error');
+                return;
+            }
+
+            try {
+                // Convertir en JSON
+                exportedData = testTournament.toJSON();
+                const json = JSON.stringify(exportedData, null, 2);
+
+                // Créer un blob et télécharger
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const date = new Date().toISOString().slice(0, 10);
+                a.download = `test-tournoi-${date}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                showStatus('exportStatus',
+                    `✓ Export réussi !<br>
+                    Fichier téléchargé: test-tournoi-${date}.json<br>
+                    Taille: ${json.length} caractères<br>
+                    Équipes: ${exportedData.teams.length}<br>
+                    Poules: ${exportedData.pools.length}`,
+                    'success');
+            } catch (err) {
+                showStatus('exportStatus', `✗ Erreur lors de l'export: ${err.message}`, 'error');
+            }
+        }
+
+        function testImport() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const json = JSON.parse(event.target.result);
+                        testTournament = Tournament.fromJSON(json);
+
+                        showStatus('importStatus',
+                            `✓ Import réussi !<br>
+                            Tournoi importé: ${testTournament.name}<br>
+                            Équipes: ${testTournament.teams.size}<br>
+                            Poules: ${testTournament.pools.length}<br>
+                            Phase: ${testTournament.phase}`,
+                            'success');
+
+                        displayTournamentState();
+                    } catch (err) {
+                        showStatus('importStatus', `✗ Erreur lors de l'import: ${err.message}`, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            input.click();
+        }
+
+        function verifyIntegrity() {
+            if (!testTournament) {
+                showStatus('verifyStatus', '✗ Aucun tournoi à vérifier', 'error');
+                return;
+            }
+
+            try {
+                let checks = [];
+
+                // Vérifier que les équipes sont bien présentes
+                checks.push(`✓ ${testTournament.teams.size} équipes chargées`);
+
+                // Vérifier que les poules sont bien présentes
+                checks.push(`✓ ${testTournament.pools.length} poules chargées`);
+
+                // Vérifier que les matches sont présents
+                let totalMatches = 0;
+                let playedMatches = 0;
+                testTournament.pools.forEach(pool => {
+                    totalMatches += pool.matches.length;
+                    playedMatches += pool.matches.filter(m => m.isPlayed).length;
+
+                    // Vérifier que chaque match a des équipes valides
+                    pool.matches.forEach(match => {
+                        if (!testTournament.teams.has(match.team1Id)) {
+                            throw new Error(`Équipe ${match.team1Id} introuvable`);
+                        }
+                        if (!testTournament.teams.has(match.team2Id)) {
+                            throw new Error(`Équipe ${match.team2Id} introuvable`);
+                        }
+                    });
+                });
+                checks.push(`✓ ${totalMatches} matches, dont ${playedMatches} joués`);
+
+                // Vérifier les statistiques des équipes
+                testTournament.teams.forEach((team, id) => {
+                    if (team.matchesPlayed < 0 || team.matchesWon < 0) {
+                        throw new Error(`Statistiques invalides pour ${team.name}`);
+                    }
+                    if (team.matchesWon > team.matchesPlayed) {
+                        throw new Error(`${team.name} a plus de victoires que de matches joués`);
+                    }
+                });
+                checks.push(`✓ Statistiques des équipes cohérentes`);
+
+                // Vérifier le bracket s'il existe
+                if (testTournament.bracket) {
+                    checks.push(`✓ Bracket présent avec ${testTournament.bracket.rounds.length} rounds`);
+                } else {
+                    checks.push(`✓ Bracket non initialisé (phase de poules)`);
+                }
+
+                // Test de sérialisation round-trip
+                const json = JSON.stringify(testTournament.toJSON());
+                const reloaded = Tournament.fromJSON(JSON.parse(json));
+
+                if (reloaded.teams.size !== testTournament.teams.size) {
+                    throw new Error('Perte de données lors de la sérialisation');
+                }
+                checks.push(`✓ Sérialisation/désérialisation réussie`);
+
+                showStatus('verifyStatus', checks.join('<br>'), 'success');
+            } catch (err) {
+                showStatus('verifyStatus', `✗ Erreur: ${err.message}`, 'error');
+            }
+        }
+
+        // Auto-afficher l'état au chargement
+        window.onload = () => {
+            displayTournamentState();
+        };
+    </script>
+</body>
+</html>

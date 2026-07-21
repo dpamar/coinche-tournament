@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tests - Classement et Qualification</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .container {
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      color: #667eea;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      color: #764ba2;
+      margin-top: 30px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #764ba2;
+    }
+
+    .test-section {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 5px;
+      border-left: 4px solid #667eea;
+    }
+
+    .test-title {
+      font-weight: bold;
+      font-size: 1.1em;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .success {
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    .error {
+      color: #dc3545;
+      font-weight: bold;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    th {
+      background-color: #667eea;
+      color: white;
+      font-weight: bold;
+    }
+
+    tr:hover {
+      background-color: #f1f3f5;
+    }
+
+    .rank {
+      font-weight: bold;
+      color: #667eea;
+      text-align: center;
+    }
+
+    .qualified {
+      background-color: #d4edda !important;
+    }
+
+    .stats {
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      margin: 10px 5px;
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .test-controls {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .result-summary {
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 5px;
+      font-size: 1.1em;
+      text-align: center;
+    }
+
+    .result-summary.success {
+      background-color: #d4edda;
+      border: 2px solid #28a745;
+    }
+
+    .result-summary.error {
+      background-color: #f8d7da;
+      border: 2px solid #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Tests - Classement et Qualification</h1>
+
+    <div class="test-controls">
+      <button onclick="runAllTests()">Lancer tous les tests</button>
+      <button onclick="clearResults()">Effacer les résultats</button>
+    </div>
+
+    <div id="results"></div>
+  </div>
+
+  <!-- Inclusion des modèles -->
+  <script src="../js/models/Team.js"></script>
+  <script src="../js/models/Match.js"></script>
+  <script src="../js/models/Pool.js"></script>
+  <script src="../js/models/Tournament.js"></script>
+  <script src="../js/models/Bracket.js"></script>
+
+  <script>
+    let testResults = [];
+
+    function clearResults() {
+      document.getElementById('results').innerHTML = '';
+      testResults = [];
+    }
+
+    function addResult(title, passed, details) {
+      testResults.push({ title, passed, details });
+    }
+
+    function displayResults() {
+      const resultsDiv = document.getElementById('results');
+      const passedCount = testResults.filter(r => r.passed).length;
+      const totalCount = testResults.length;
+
+      let html = `
+        <div class="result-summary ${passedCount === totalCount ? 'success' : 'error'}">
+          Résultat global : ${passedCount}/${totalCount} tests réussis
+        </div>
+      `;
+
+      testResults.forEach(result => {
+        html += `
+          <div class="test-section">
+            <div class="test-title">
+              ${result.passed ? '✓' : '✗'} ${result.title}
+              <span class="${result.passed ? 'success' : 'error'}">
+                ${result.passed ? 'RÉUSSI' : 'ÉCHEC'}
+              </span>
+            </div>
+            <div>${result.details}</div>
+          </div>
+        `;
+      });
+
+      resultsDiv.innerHTML = html;
+    }
+
+    // Test 1 : Classement basique d'une poule
+    function testBasicRanking() {
+      const tournament = new Tournament('Test');
+      const team1 = tournament.addTeam('Équipe A');
+      const team2 = tournament.addTeam('Équipe B');
+      const team3 = tournament.addTeam('Équipe C');
+      const team4 = tournament.addTeam('Équipe D');
+
+      tournament.createPools([4]);
+      const pool = tournament.pools[0];
+
+      // Simuler des résultats : A gagne tout, B 2 victoires, C 1 victoire, D 0
+      pool.matches[0].playMatch(1000, 500); // A vs B -> A gagne
+      pool.matches[1].playMatch(1200, 400); // A vs C -> A gagne
+      pool.matches[2].playMatch(1100, 600); // A vs D -> A gagne
+      pool.matches[3].playMatch(900, 700);  // B vs C -> B gagne
+      pool.matches[4].playMatch(800, 750);  // B vs D -> B gagne
+      pool.matches[5].playMatch(650, 600);  // C vs D -> C gagne
+
+      const ranking = pool.getRanking(tournament.teams);
+
+      let table = '<table><tr><th>Pos</th><th>Équipe</th><th>V</th><th>J</th><th>PM</th><th>PE</th><th>GA</th></tr>';
+      ranking.forEach((team, index) => {
+        const ga = team.pointsScored - team.pointsConceded;
+        table += `<tr>
+          <td class="rank">${index + 1}</td>
+          <td>${team.name}</td>
+          <td>${team.matchesWon}</td>
+          <td>${team.matchesPlayed}</td>
+          <td>${team.pointsScored}</td>
+          <td>${team.pointsConceded}</td>
+          <td>${ga > 0 ? '+' : ''}${ga}</td>
+        </tr>`;
+      });
+      table += '</table>';
+
+      const passed =
+        ranking[0].name === 'Équipe A' && ranking[0].matchesWon === 3 &&
+        ranking[1].name === 'Équipe B' && ranking[1].matchesWon === 2 &&
+        ranking[2].name === 'Équipe C' && ranking[2].matchesWon === 1 &&
+        ranking[3].name === 'Équipe D' && ranking[3].matchesWon === 0;
+
+      addResult('Test 1 : Classement basique d\'une poule', passed, table);
+    }
+
+    // Test 2 : Égalité de victoires, départage au goal average
+    function testGoalAverageTieBreaker() {
+      const tournament = new Tournament('Test');
+      const team1 = tournament.addTeam('Équipe A');
+      const team2 = tournament.addTeam('Équipe B');
+      const team3 = tournament.addTeam('Équipe C');
+      const team4 = tournament.addTeam('Équipe D');
+
+      tournament.createPools([4]);
+      const pool = tournament.pools[0];
+
+      // A et B ont 2 victoires chacun, mais A a un meilleur goal average
+      pool.matches[0].playMatch(1000, 500); // A vs B -> A gagne (+500)
+      pool.matches[1].playMatch(1200, 700); // A vs C -> A gagne (+500)
+      pool.matches[2].playMatch(600, 800);  // A vs D -> A perd (-200) [total GA: +800]
+      pool.matches[3].playMatch(900, 600);  // B vs C -> B gagne (+300)
+      pool.matches[4].playMatch(950, 700);  // B vs D -> B gagne (+250) [total GA: +50]
+      pool.matches[5].playMatch(750, 650);  // C vs D -> C gagne
+
+      const ranking = pool.getRanking(tournament.teams);
+
+      let table = '<table><tr><th>Pos</th><th>Équipe</th><th>V</th><th>J</th><th>PM</th><th>PE</th><th>GA</th></tr>';
+      ranking.forEach((team, index) => {
+        const ga = team.pointsScored - team.pointsConceded;
+        table += `<tr>
+          <td class="rank">${index + 1}</td>
+          <td>${team.name}</td>
+          <td>${team.matchesWon}</td>
+          <td>${team.matchesPlayed}</td>
+          <td>${team.pointsScored}</td>
+          <td>${team.pointsConceded}</td>
+          <td>${ga > 0 ? '+' : ''}${ga}</td>
+        </tr>`;
+      });
+      table += '</table>';
+
+      const passed =
+        ranking[0].name === 'Équipe A' && ranking[0].matchesWon === 2 &&
+        ranking[1].name === 'Équipe B' && ranking[1].matchesWon === 2 &&
+        (ranking[0].pointsScored - ranking[0].pointsConceded) >
+        (ranking[1].pointsScored - ranking[1].pointsConceded);
+
+      addResult('Test 2 : Égalité de victoires - départage au goal average', passed, table);
+    }
+
+    // Test 3 : Égalité victoires + GA, départage aux points marqués
+    function testPointsScoredTieBreaker() {
+      const tournament = new Tournament('Test');
+      const team1 = tournament.addTeam('Équipe A');
+      const team2 = tournament.addTeam('Équipe B');
+      const team3 = tournament.addTeam('Équipe C');
+      const team4 = tournament.addTeam('Équipe D');
+
+      tournament.createPools([4]);
+      const pool = tournament.pools[0];
+
+      // A et B ont 2 victoires et même GA, mais A a marqué plus de points
+      pool.matches[0].playMatch(1200, 500); // A vs B -> A gagne
+      pool.matches[1].playMatch(700, 1000); // A vs C -> A perd
+      pool.matches[2].playMatch(900, 600);  // A vs D -> A gagne [PM: 2800, GA: +700]
+      pool.matches[3].playMatch(1000, 700); // B vs C -> B gagne
+      pool.matches[4].playMatch(1200, 900); // B vs D -> B gagne [PM: 2700, GA: +700]
+      pool.matches[5].playMatch(750, 650);  // C vs D -> C gagne
+
+      const ranking = pool.getRanking(tournament.teams);
+
+      let table = '<table><tr><th>Pos</th><th>Équipe</th><th>V</th><th>J</th><th>PM</th><th>PE</th><th>GA</th></tr>';
+      ranking.forEach((team, index) => {
+        const ga = team.pointsScored - team.pointsConceded;
+        table += `<tr>
+          <td class="rank">${index + 1}</td>
+          <td>${team.name}</td>
+          <td>${team.matchesWon}</td>
+          <td>${team.matchesPlayed}</td>
+          <td>${team.pointsScored}</td>
+          <td>${team.pointsConceded}</td>
+          <td>${ga > 0 ? '+' : ''}${ga}</td>
+        </tr>`;
+      });
+      table += '</table>';
+
+      const gaA = ranking[0].pointsScored - ranking[0].pointsConceded;
+      const gaB = ranking[1].pointsScored - ranking[1].pointsConceded;
+
+      const passed =
+        ranking[0].name === 'Équipe A' &&
+        ranking[1].name === 'Équipe B' &&
+        ranking[0].matchesWon === 2 && ranking[1].matchesWon === 2 &&
+        gaA === gaB &&
+        ranking[0].pointsScored > ranking[1].pointsScored;
+
+      addResult('Test 3 : Égalité victoires + GA - départage aux points marqués', passed, table);
+    }
+
+    // Test 4 : Qualification complète avec 4 poules
+    function testFullQualification() {
+      const tournament = new Tournament('Test');
+
+      // Créer 18 équipes (4 poules : 4, 4, 5, 5)
+      for (let i = 1; i <= 18; i++) {
+        tournament.addTeam(`Équipe ${i}`);
+      }
+
+      tournament.createPools([4, 4, 5, 5]);
+
+      // Simuler tous les matches pour chaque poule
+      tournament.pools.forEach((pool, poolIndex) => {
+        pool.matches.forEach(match => {
+          // Score aléatoire mais réaliste
+          const score1 = 600 + Math.floor(Math.random() * 800);
+          const score2 = 600 + Math.floor(Math.random() * 800);
+          match.playMatch(score1, score2);
+        });
+      });
+
+      // Obtenir les équipes qualifiées
+      const qualified = tournament.getQualifiedTeams();
+
+      // Afficher le détail de chaque poule
+      let details = '';
+      tournament.pools.forEach((pool, index) => {
+        const ranking = pool.getRanking(tournament.teams);
+        details += `<h3>Poule ${index + 1}</h3>`;
+        details += '<table><tr><th>Pos</th><th>Équipe</th><th>V</th><th>PM</th><th>PE</th><th>GA</th><th>Qualifié?</th></tr>';
+
+        ranking.forEach((team, pos) => {
+          const ga = team.pointsScored - team.pointsConceded;
+          const isQualified = qualified.includes(team.id);
+          details += `<tr ${isQualified ? 'class="qualified"' : ''}>
+            <td class="rank">${pos + 1}</td>
+            <td>${team.name}</td>
+            <td>${team.matchesWon}</td>
+            <td>${team.pointsScored}</td>
+            <td>${team.pointsConceded}</td>
+            <td>${ga > 0 ? '+' : ''}${ga}</td>
+            <td>${isQualified ? '✓ OUI' : 'Non'}</td>
+          </tr>`;
+        });
+        details += '</table>';
+      });
+
+      // Vérifier que 16 équipes sont qualifiées
+      const passed = qualified.length === 16;
+
+      details += `<div style="margin-top: 20px; padding: 10px; background: ${passed ? '#d4edda' : '#f8d7da'};">
+        <strong>Nombre d'équipes qualifiées : ${qualified.length}/16</strong>
+      </div>`;
+
+      addResult('Test 4 : Qualification complète (4 poules, 18 équipes)', passed, details);
+    }
+
+    // Test 5 : Vérifier l'ordre de qualification (1ers > 2èmes > 3èmes)
+    function testQualificationOrder() {
+      const tournament = new Tournament('Test');
+
+      // Créer 20 équipes (4 poules de 5)
+      for (let i = 1; i <= 20; i++) {
+        tournament.addTeam(`Équipe ${i}`);
+      }
+
+      tournament.createPools([5, 5, 5, 5]);
+
+      // Simuler les matches avec des résultats contrôlés
+      tournament.pools.forEach((pool, poolIndex) => {
+        pool.matches.forEach(match => {
+          const score1 = 700 + Math.floor(Math.random() * 600);
+          const score2 = 700 + Math.floor(Math.random() * 600);
+          match.playMatch(score1, score2);
+        });
+      });
+
+      const qualified = tournament.getQualifiedTeams();
+
+      // Compter combien de 1ers, 2èmes, 3èmes sont qualifiés
+      let firstCount = 0, secondCount = 0, thirdCount = 0, otherCount = 0;
+
+      tournament.pools.forEach(pool => {
+        const ranking = pool.getRanking(tournament.teams);
+        if (qualified.includes(ranking[0].id)) firstCount++;
+        if (qualified.includes(ranking[1].id)) secondCount++;
+        if (qualified.includes(ranking[2].id)) thirdCount++;
+      });
+
+      const details = `
+        <div class="stats">
+          <p>Premiers qualifiés : ${firstCount}/4</p>
+          <p>Deuxièmes qualifiés : ${secondCount}/4</p>
+          <p>Troisièmes qualifiés : ${thirdCount}/4</p>
+          <p><strong>Total qualifiés : ${qualified.length}/16</strong></p>
+        </div>
+      `;
+
+      // Tous les 1ers doivent être qualifiés, puis des 2èmes, puis des 3èmes
+      const passed =
+        qualified.length === 16 &&
+        firstCount === 4 &&
+        secondCount + thirdCount === 12;
+
+      addResult('Test 5 : Ordre de qualification (1ers > 2èmes > 3èmes)', passed, details);
+    }
+
+    // Test 6 : Cas limite - Égalité parfaite entre 3èmes
+    function testThirdPlaceTieBreaker() {
+      const tournament = new Tournament('Test');
+
+      for (let i = 1; i <= 20; i++) {
+        tournament.addTeam(`Équipe ${i}`);
+      }
+
+      tournament.createPools([5, 5, 5, 5]);
+
+      // Simuler les matches
+      tournament.pools.forEach(pool => {
+        pool.matches.forEach(match => {
+          const score1 = 800 + Math.floor(Math.random() * 400);
+          const score2 = 800 + Math.floor(Math.random() * 400);
+          match.playMatch(score1, score2);
+        });
+      });
+
+      const qualified = tournament.getQualifiedTeams();
+
+      // Récupérer tous les 3èmes pour voir comment ils sont triés
+      const allThirds = [];
+      tournament.pools.forEach((pool, index) => {
+        const ranking = pool.getRanking(tournament.teams);
+        if (ranking.length >= 3) {
+          allThirds.push({
+            poolIndex: index + 1,
+            ...ranking[2],
+            qualified: qualified.includes(ranking[2].id)
+          });
+        }
+      });
+
+      // Trier comme le fait getQualifiedTeams
+      allThirds.sort((a, b) => {
+        if (b.matchesWon !== a.matchesWon) return b.matchesWon - a.matchesWon;
+        const gaA = a.pointsScored - a.pointsConceded;
+        const gaB = b.pointsScored - b.pointsConceded;
+        if (gaB !== gaA) return gaB - gaA;
+        return b.pointsScored - a.pointsScored;
+      });
+
+      let details = '<h3>Classement des 3èmes</h3>';
+      details += '<table><tr><th>Poule</th><th>Équipe</th><th>V</th><th>PM</th><th>PE</th><th>GA</th><th>Qualifié?</th></tr>';
+
+      allThirds.forEach(team => {
+        const ga = team.pointsScored - team.pointsConceded;
+        details += `<tr ${team.qualified ? 'class="qualified"' : ''}>
+          <td>Poule ${team.poolIndex}</td>
+          <td>${team.name}</td>
+          <td>${team.matchesWon}</td>
+          <td>${team.pointsScored}</td>
+          <td>${team.pointsConceded}</td>
+          <td>${ga > 0 ? '+' : ''}${ga}</td>
+          <td>${team.qualified ? '✓ OUI' : 'Non'}</td>
+        </tr>`;
+      });
+      details += '</table>';
+
+      const passed = qualified.length === 16;
+
+      addResult('Test 6 : Départage entre les 3èmes de poule', passed, details);
+    }
+
+    function runAllTests() {
+      clearResults();
+
+      try {
+        testBasicRanking();
+        testGoalAverageTieBreaker();
+        testPointsScoredTieBreaker();
+        testFullQualification();
+        testQualificationOrder();
+        testThirdPlaceTieBreaker();
+
+        displayResults();
+      } catch (error) {
+        document.getElementById('results').innerHTML = `
+          <div class="test-section">
+            <div class="test-title error">
+              ✗ ERREUR CRITIQUE
+            </div>
+            <div style="color: red;">
+              ${error.message}<br>
+              <pre>${error.stack}</pre>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Lancer les tests au chargement de la page
+    window.addEventListener('DOMContentLoaded', runAllTests);
+  </script>
+</body>
+</html>

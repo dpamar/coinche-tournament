@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Pool Phase View</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Test Pool Phase View</h1>
+        </header>
+        <main id="main-content"></main>
+    </div>
+
+    <!-- Models -->
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Bracket.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+
+    <!-- Components -->
+    <script src="../js/components/Button.js"></script>
+    <script src="../js/components/Form.js"></script>
+    <script src="../js/components/Table.js"></script>
+
+    <!-- Views -->
+    <script src="../js/views/PoolPhaseView.js"></script>
+
+    <script>
+        // Create test tournament
+        const tournament = new Tournament('Test Tournament');
+
+        // Add 18 teams
+        for (let i = 1; i <= 18; i++) {
+            tournament.addTeam(`Équipe ${i}`);
+        }
+
+        // Create pools: 4, 4, 5, 5
+        tournament.createPools([4, 4, 5, 5]);
+
+        // Play some matches in the first pool
+        const pool1 = tournament.pools[0];
+        pool1.matches[0].setScore(1500, 1200);
+        tournament.updateTeamStats(pool1.matches[0]);
+        pool1.matches[1].setScore(1800, 1100);
+        tournament.updateTeamStats(pool1.matches[1]);
+
+        // Play some matches in the second pool
+        const pool2 = tournament.pools[1];
+        pool2.matches[0].setScore(1400, 1600);
+        tournament.updateTeamStats(pool2.matches[0]);
+
+        // Render the view
+        const view = new PoolPhaseView(tournament);
+        const mainContent = document.getElementById('main-content');
+        mainContent.innerHTML = view.render();
+        view.attachEventListeners();
+
+        console.log('Pool Phase View Test Loaded');
+        console.log('Tournament:', tournament);
+        console.log('Pools:', tournament.pools);
+    </script>
+</body>
+</html>

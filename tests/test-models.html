@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test des Modèles - Tournoi de Coinche</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test des Modèles de Données</h1>
+    <div id="results"></div>
+
+    <!-- Models -->
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Bracket.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+
+        function addTestResult(title, success, message, data) {
+            const section = document.createElement('div');
+            section.className = 'test-section';
+            section.innerHTML = `
+                <h2>${title}</h2>
+                <p class="${success ? 'success' : 'error'}">${success ? '✅' : '❌'} ${message}</p>
+                ${data ? `<pre>${JSON.stringify(data, null, 2)}</pre>` : ''}
+            `;
+            resultsDiv.appendChild(section);
+        }
+
+        // Test 1: Classe Team
+        try {
+            const team = new Team('Les Coincheurs', 'team_1');
+            team.matchesPlayed = 3;
+            team.matchesWon = 2;
+            team.pointsScored = 450;
+            team.pointsConceded = 380;
+
+            const goalAverage = team.getGoalAverage();
+            const json = team.toJSON();
+            const restored = Team.fromJSON(json);
+
+            const success = goalAverage === 70 && restored.name === 'Les Coincheurs';
+            addTestResult('Test Team', success, 'Team créé, goal average calculé et sérialisation OK', {
+                goalAverage,
+                json,
+                restored: restored.toJSON()
+            });
+        } catch (error) {
+            addTestResult('Test Team', false, error.message);
+        }
+
+        // Test 2: Classe Match
+        try {
+            const match = new Match('team_1', 'team_2', 'pool');
+            match.setScore(180, 120);
+            const winner = match.getWinner();
+            const json = match.toJSON();
+            const restored = Match.fromJSON(json);
+
+            const success = winner === 'team_1' && restored.isPlayed === true;
+            addTestResult('Test Match', success, 'Match créé, scores enregistrés et gagnant identifié', {
+                winner,
+                json,
+                restored: restored.toJSON()
+            });
+        } catch (error) {
+            addTestResult('Test Match', false, error.message);
+        }
+
+        // Test 3: Classe Pool
+        try {
+            const pool = new Pool('pool_1', ['team_1', 'team_2', 'team_3', 'team_4']);
+            pool.generateMatches();
+
+            const matchCount = pool.matches.length;
+            const json = pool.toJSON();
+            const restored = Pool.fromJSON(json);
+
+            const success = matchCount === 6 && restored.matches.length === 6;
+            addTestResult('Test Pool', success, `Pool créé avec ${matchCount} matches (attendu: 6 pour 4 équipes)`, {
+                matchCount,
+                matches: pool.matches.map(m => ({ team1: m.team1Id, team2: m.team2Id }))
+            });
+        } catch (error) {
+            addTestResult('Test Pool', false, error.message);
+        }
+
+        // Test 4: Classe Bracket
+        try {
+            const teams = [];
+            for (let i = 1; i <= 16; i++) {
+                teams.push('team_' + i);
+            }
+            const bracket = new Bracket(teams);
+            bracket.initializeBracket();
+
+            const firstRoundMatches = bracket.rounds[0].length;
+            const json = bracket.toJSON();
+            const restored = Bracket.fromJSON(json);
+
+            const success = firstRoundMatches === 8 && restored.rounds.length === 1;
+            addTestResult('Test Bracket', success, `Bracket créé avec ${firstRoundMatches} matches au premier tour`, {
+                firstRoundMatches,
+                roundName: Bracket.getRoundName(0),
+                matches: bracket.rounds[0].map(m => ({ team1: m.team1Id, team2: m.team2Id }))
+            });
+        } catch (error) {
+            addTestResult('Test Bracket', false, error.message);
+        }
+
+        // Test 5: Classe Tournament
+        try {
+            const tournament = new Tournament('Tournoi de Coinche 2026');
+
+            // Ajouter 18 équipes
+            for (let i = 1; i <= 18; i++) {
+                tournament.addTeam(`Équipe ${i}`);
+            }
+
+            // Créer 4 poules (4, 4, 5, 5)
+            tournament.createPools([4, 4, 5, 5]);
+
+            const teamCount = tournament.teams.size;
+            const poolCount = tournament.pools.length;
+            const totalMatches = tournament.pools.reduce((sum, pool) => sum + pool.matches.length, 0);
+
+            const json = tournament.toJSON();
+            const restored = Tournament.fromJSON(json);
+
+            const success = teamCount === 18 && poolCount === 4 && restored.phase === 'pool';
+            addTestResult('Test Tournament', success, `Tournoi créé avec ${teamCount} équipes, ${poolCount} poules, ${totalMatches} matches`, {
+                teamCount,
+                poolCount,
+                totalMatches,
+                phase: tournament.phase,
+                pools: tournament.pools.map(p => ({ id: p.id, teams: p.teams.length, matches: p.matches.length }))
+            });
+        } catch (error) {
+            addTestResult('Test Tournament', false, error.message);
+        }
+
+        // Test 6: Simulation complète d'un mini tournoi
+        try {
+            const tournament = new Tournament('Mini Tournoi Test');
+
+            // Ajouter 8 équipes
+            for (let i = 1; i <= 8; i++) {
+                tournament.addTeam(`Équipe ${i}`);
+            }
+
+            // Créer 2 poules de 4
+            tournament.createPools([4, 4]);
+
+            // Jouer tous les matches de poule avec des scores aléatoires
+            tournament.pools.forEach(pool => {
+                pool.matches.forEach(match => {
+                    const score1 = Math.floor(Math.random() * 100) + 100;
+                    const score2 = Math.floor(Math.random() * 100) + 100;
+                    match.setScore(score1, score2);
+                });
+            });
+
+            const poolPhaseReady = tournament.isPoolPhaseReady();
+
+            addTestResult('Test Simulation', poolPhaseReady, 'Simulation de phase de poules complétée', {
+                poolPhaseReady,
+                pool1Ranking: tournament.pools[0].getRanking(tournament.teams).map(t => ({
+                    name: t.name,
+                    won: t.matchesWon,
+                    scored: t.pointsScored,
+                    conceded: t.pointsConceded
+                })),
+                pool2Ranking: tournament.pools[1].getRanking(tournament.teams).map(t => ({
+                    name: t.name,
+                    won: t.matchesWon,
+                    scored: t.pointsScored,
+                    conceded: t.pointsConceded
+                }))
+            });
+        } catch (error) {
+            addTestResult('Test Simulation', false, error.message);
+        }
+
+        // Test 7: Sauvegarde et chargement
+        try {
+            const tournament = new Tournament('Test Sauvegarde');
+            tournament.addTeam('Équipe A');
+            tournament.addTeam('Équipe B');
+            tournament.save();
+
+            const loaded = Tournament.load();
+            const success = loaded && loaded.teams.size === 2 && loaded.name === 'Test Sauvegarde';
+
+            addTestResult('Test Sauvegarde/Chargement', success, 'Sauvegarde et chargement depuis localStorage OK', {
+                original: { name: tournament.name, teams: tournament.teams.size },
+                loaded: loaded ? { name: loaded.name, teams: loaded.teams.size } : null
+            });
+        } catch (error) {
+            addTestResult('Test Sauvegarde/Chargement', false, error.message);
+        }
+
+        // Résumé final
+        const allTests = resultsDiv.querySelectorAll('.test-section');
+        const successCount = resultsDiv.querySelectorAll('.success').length;
+        const totalCount = allTests.length;
+
+        const summary = document.createElement('div');
+        summary.className = 'test-section';
+        summary.style.backgroundColor = successCount === totalCount ? '#d4edda' : '#f8d7da';
+        summary.innerHTML = `
+            <h2>📊 Résumé des Tests</h2>
+            <p style="font-size: 1.2em; font-weight: bold;">
+                ${successCount} / ${totalCount} tests réussis
+            </p>
+        `;
+        resultsDiv.insertBefore(summary, resultsDiv.firstChild);
+    </script>
+</body>
+</html>

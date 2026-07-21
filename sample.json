@@ -1,0 +1,417 @@
+{
+  "name": "Tournoi de Test",
+  "teams": [
+    {
+      "id": "team_1",
+      "name": "Les As",
+      "matchesPlayed": 1,
+      "matchesWon": 1,
+      "pointsScored": 4500,
+      "pointsConceded": 3200
+    },
+    {
+      "id": "team_2",
+      "name": "Les Rois",
+      "matchesPlayed": 1,
+      "matchesWon": 0,
+      "pointsScored": 3200,
+      "pointsConceded": 4500
+    },
+    {
+      "id": "team_3",
+      "name": "Les Dames",
+      "matchesPlayed": 1,
+      "matchesWon": 0,
+      "pointsScored": 3800,
+      "pointsConceded": 4100
+    },
+    {
+      "id": "team_4",
+      "name": "Les Valets",
+      "matchesPlayed": 1,
+      "matchesWon": 1,
+      "pointsScored": 4100,
+      "pointsConceded": 3800
+    },
+    {
+      "id": "team_5",
+      "name": "Les Champions",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_6",
+      "name": "Les Pros",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_7",
+      "name": "Les Experts",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_8",
+      "name": "Les Maîtres",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_9",
+      "name": "Les Légendes",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_10",
+      "name": "Les Héros",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_11",
+      "name": "Les Warriors",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_12",
+      "name": "Les Titans",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_13",
+      "name": "Les Vikings",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_14",
+      "name": "Les Spartans",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_15",
+      "name": "Les Gladiateurs",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_16",
+      "name": "Les Conquérants",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_17",
+      "name": "Les Dragons",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    },
+    {
+      "id": "team_18",
+      "name": "Les Phoenix",
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "pointsScored": 0,
+      "pointsConceded": 0
+    }
+  ],
+  "pools": [
+    {
+      "id": "pool_1",
+      "teams": [
+        "team_1",
+        "team_2",
+        "team_3",
+        "team_4"
+      ],
+      "matches": [
+        {
+          "team1Id": "team_1",
+          "team2Id": "team_2",
+          "type": "pool",
+          "score1": 4500,
+          "score2": 3200,
+          "isPlayed": true
+        },
+        {
+          "team1Id": "team_3",
+          "team2Id": "team_4",
+          "type": "pool",
+          "score1": 3800,
+          "score2": 4100,
+          "isPlayed": true
+        },
+        {
+          "team1Id": "team_1",
+          "team2Id": "team_3",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_2",
+          "team2Id": "team_4",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_1",
+          "team2Id": "team_4",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_2",
+          "team2Id": "team_3",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        }
+      ]
+    },
+    {
+      "id": "pool_2",
+      "teams": [
+        "team_5",
+        "team_6",
+        "team_7",
+        "team_8"
+      ],
+      "matches": [
+        {
+          "team1Id": "team_5",
+          "team2Id": "team_6",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_7",
+          "team2Id": "team_8",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_5",
+          "team2Id": "team_7",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_6",
+          "team2Id": "team_8",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_5",
+          "team2Id": "team_8",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_6",
+          "team2Id": "team_7",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        }
+      ]
+    },
+    {
+      "id": "pool_3",
+      "teams": [
+        "team_9",
+        "team_10",
+        "team_11",
+        "team_12",
+        "team_13"
+      ],
+      "matches": [
+        {
+          "team1Id": "team_9",
+          "team2Id": "team_10",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_11",
+          "team2Id": "team_12",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_9",
+          "team2Id": "team_11",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_10",
+          "team2Id": "team_12",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_9",
+          "team2Id": "team_12",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_10",
+          "team2Id": "team_11",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_13",
+          "team2Id": "team_18",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_12",
+          "team2Id": "team_17",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        }
+      ]
+    },
+    {
+      "id": "pool_4",
+      "teams": [
+        "team_14",
+        "team_15",
+        "team_16",
+        "team_17",
+        "team_18"
+      ],
+      "matches": [
+        {
+          "team1Id": "team_14",
+          "team2Id": "team_15",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_16",
+          "team2Id": "team_17",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_14",
+          "team2Id": "team_16",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_15",
+          "team2Id": "team_17",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_14",
+          "team2Id": "team_17",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_15",
+          "team2Id": "team_16",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        },
+        {
+          "team1Id": "team_11",
+          "team2Id": "team_16",
+          "type": "pool",
+          "score1": null,
+          "score2": null,
+          "isPlayed": false
+        }
+      ]
+    }
+  ],
+  "bracket": null,
+  "phase": "pool",
+  "nextTeamId": 19,
+  "qualifiedCount": 16
+}

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Automatisé Export/Import</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+        h1 {
+            color: #4ec9b0;
+            border-bottom: 2px solid #4ec9b0;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            background: #252526;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #007acc;
+            border-radius: 4px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #569cd6;
+        }
+        .test-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #3e3e42;
+        }
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        .pass {
+            color: #4ec9b0;
+        }
+        .pass::before {
+            content: "✓ ";
+            font-weight: bold;
+        }
+        .fail {
+            color: #f48771;
+        }
+        .fail::before {
+            content: "✗ ";
+            font-weight: bold;
+        }
+        .info {
+            color: #dcdcaa;
+            margin-left: 20px;
+            font-size: 0.9em;
+        }
+        button {
+            background-color: #007acc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        button:disabled {
+            background-color: #3e3e42;
+            cursor: not-allowed;
+        }
+        .summary {
+            background: #264f78;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        .summary.success {
+            background: #1e7145;
+        }
+        .summary.error {
+            background: #7d1c1c;
+        }
+        pre {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Automatisé Export/Import</h1>
+
+    <button id="runTestsBtn" onclick="runAllTests()">Exécuter tous les tests</button>
+    <button onclick="clearResults()">Effacer les résultats</button>
+
+    <div id="results"></div>
+
+    <!-- Include model classes -->
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Bracket.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+
+    <script>
+        let testResults = [];
+        let totalTests = 0;
+        let passedTests = 0;
+        let failedTests = 0;
+
+        function log(message, type = 'info') {
+            testResults.push({ message, type });
+        }
+
+        function assert(condition, message) {
+            totalTests++;
+            if (condition) {
+                passedTests++;
+                log(message, 'pass');
+                return true;
+            } else {
+                failedTests++;
+                log(message, 'fail');
+                return false;
+            }
+        }
+
+        function section(title) {
+            log(`\n=== ${title} ===`, 'section');
+        }
+
+        function clearResults() {
+            testResults = [];
+            totalTests = 0;
+            passedTests = 0;
+            failedTests = 0;
+            document.getElementById('results').innerHTML = '';
+        }
+
+        function displayResults() {
+            const container = document.getElementById('results');
+            let html = '';
+
+            let currentSection = '';
+            testResults.forEach(result => {
+                if (result.type === 'section') {
+                    if (currentSection) {
+                        html += '</div>';
+                    }
+                    currentSection = result.message.replace(/=== /g, '').replace(/ ===/g, '');
+                    html += `<div class="test-section"><h3>${currentSection}</h3>`;
+                } else if (result.type === 'info') {
+                    html += `<div class="info">${result.message}</div>`;
+                } else {
+                    html += `<div class="test-item ${result.type}">${result.message}</div>`;
+                }
+            });
+
+            if (currentSection) {
+                html += '</div>';
+            }
+
+            // Add summary
+            const successRate = totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
+            const summaryClass = failedTests === 0 ? 'success' : 'error';
+            html = `
+                <div class="summary ${summaryClass}">
+                    <strong>Résultats:</strong> ${passedTests}/${totalTests} tests réussis (${successRate}%)
+                    ${failedTests > 0 ? `<br><strong>${failedTests} tests échoués</strong>` : ''}
+                </div>
+            ` + html;
+
+            container.innerHTML = html;
+        }
+
+        // Test 1: Créer un tournoi complet
+        function testCreateTournament() {
+            section('Test 1: Création de tournoi');
+
+            try {
+                const tournament = new Tournament('Tournoi Test', 16);
+                assert(tournament !== null, 'Tournoi créé');
+                assert(tournament.name === 'Tournoi Test', 'Nom du tournoi correct');
+                assert(tournament.qualifiedCount === 16, 'Nombre de qualifiés correct');
+                assert(tournament.phase === 'setup', 'Phase initiale = setup');
+
+                // Ajouter des équipes
+                for (let i = 1; i <= 18; i++) {
+                    tournament.addTeam(`Équipe ${i}`);
+                }
+                assert(tournament.teams.size === 18, '18 équipes ajoutées');
+
+                return tournament;
+            } catch (err) {
+                log(`Erreur: ${err.message}`, 'fail');
+                return null;
+            }
+        }
+
+        // Test 2: Créer les poules
+        function testCreatePools(tournament) {
+            section('Test 2: Création des poules');
+
+            try {
+                tournament.createPools([4, 4, 5, 5]);
+                assert(tournament.pools.length === 4, '4 poules créées');
+                assert(tournament.phase === 'pool', 'Phase = pool');
+
+                let totalTeams = 0;
+                tournament.pools.forEach(pool => {
+                    totalTeams += pool.teams.length;
+                });
+                assert(totalTeams === 18, 'Toutes les équipes assignées aux poules');
+
+                // Compter les matches
+                let totalMatches = 0;
+                tournament.pools.forEach(pool => {
+                    totalMatches += pool.matches.length;
+                });
+                log(`${totalMatches} matches générés`, 'info');
+                assert(totalMatches > 0, 'Matches générés');
+
+                return true;
+            } catch (err) {
+                log(`Erreur: ${err.message}`, 'fail');
+                return false;
+            }
+        }
+
+        // Test 3: Jouer des matches
+        function testPlayMatches(tournament) {
+            section('Test 3: Jouer des matches');
+
+            try {
+                let matchesPlayed = 0;
+
+                // Jouer quelques matches dans chaque poule
+                tournament.pools.forEach((pool, poolIndex) => {
+                    for (let i = 0; i < Math.min(3, pool.matches.length); i++) {
+                        const match = pool.matches[i];
+                        const score1 = 3000 + Math.floor(Math.random() * 2000);
+                        const score2 = 3000 + Math.floor(Math.random() * 2000);
+                        match.setScore(score1, score2);
+                        tournament.updateTeamStats(match);
+                        matchesPlayed++;
+                    }
+                });
+
+                assert(matchesPlayed > 0, `${matchesPlayed} matches joués`);
+
+                // Vérifier que les statistiques ont été mises à jour
+                let teamsWithStats = 0;
+                tournament.teams.forEach(team => {
+                    if (team.matchesPlayed > 0) {
+                        teamsWithStats++;
+                    }
+                });
+                assert(teamsWithStats > 0, `${teamsWithStats} équipes ont des statistiques`);
+
+                return true;
+            } catch (err) {
+                log(`Erreur: ${err.message}`, 'fail');
+                return false;
+            }
+        }
+
+        // Test 4: Export en JSON
+        function testExport(tournament) {
+            section('Test 4: Export en JSON');
+
+            try {
+                const json = tournament.toJSON();
+                assert(json !== null, 'toJSON() retourne un objet');
+                assert(json.name === tournament.name, 'Nom exporté correctement');
+                assert(Array.isArray(json.teams), 'Teams est un tableau');
+                assert(json.teams.length === 18, '18 équipes exportées');
+                assert(Array.isArray(json.pools), 'Pools est un tableau');
+                assert(json.pools.length === 4, '4 poules exportées');
+
+                // Vérifier que les matches ont été exportés
+                let exportedMatches = 0;
+                json.pools.forEach(pool => {
+                    exportedMatches += pool.matches.length;
+                });
+                assert(exportedMatches > 0, `${exportedMatches} matches exportés`);
+
+                // Vérifier la sérialisation JSON
+                const jsonString = JSON.stringify(json);
+                assert(jsonString.length > 0, 'Sérialisation JSON réussie');
+                log(`Taille du JSON: ${jsonString.length} caractères`, 'info');
+
+                return json;
+            } catch (err) {
+                log(`Erreur: ${err.message}`, 'fail');
+                return null;
+            }
+        }
+
+        // Test 5: Import depuis JSON
+        function testImport(json) {
+            section('Test 5: Import depuis JSON');
+
+            try {
+                const imported = Tournament.fromJSON(json);
+                assert(imported !== null, 'fromJSON() retourne un tournoi');
+                assert(imported.name === json.name, 'Nom importé correctement');
+                assert(imported.teams.size === 18, '18 équipes importées');
+                assert(imported.pools.length === 4, '4 poules importées');
+                assert(imported.phase === 'pool', 'Phase importée correctement');
+
+                return imported;
+            } catch (err) {
+                log(`Erreur: ${err.message}`, 'fail');
+                return null;
+            }
+        }
+
+        // Test 6: Vérifier l'intégrité après import
+        function testIntegrity(original, imported) {
+            section('Test 6: Vérification d\'intégrité');
+
+            try {
+                // Comparer les équipes
+                assert(imported.teams.size === original.teams.size, 'Même nombre d\'équipes');
+
+                let teamNamesMatch = true;
+                original.teams.forEach((team, id) => {
+                    const importedTeam = imported.teams.get(id);
+                    if (!importedTeam || importedTeam.name !== team.name) {
+                        teamNamesMatch = false;
+                    }
+                });
+                assert(teamNamesMatch, 'Noms des équipes identiques');
+
+                // Comparer les statistiques
+                let statsMatch = true;
+                original.teams.forEach((team, id) => {
+                    const importedTeam = imported.teams.get(id);
+                    if (importedTeam.matchesPlayed !== team.matchesPlayed ||
+                        importedTeam.matchesWon !== team.matchesWon ||
+                        importedTeam.pointsScored !== team.pointsScored ||
+                        importedTeam.pointsConceded !== team.pointsConceded) {
+                        statsMatch = false;
+                    }
+                });
+                assert(statsMatch, 'Statistiques des équipes identiques');
+
+                // Comparer les poules
+                assert(imported.pools.length === original.pools.length, 'Même nombre de poules');
+
+                // Comparer les matches
+                let matchesMatch = true;
+                for (let i = 0; i < original.pools.length; i++) {
+                    const origPool = original.pools[i];
+                    const impPool = imported.pools[i];
+
+                    if (origPool.matches.length !== impPool.matches.length) {
+                        matchesMatch = false;
+                        break;
+                    }
+
+                    for (let j = 0; j < origPool.matches.length; j++) {
+                        const origMatch = origPool.matches[j];
+                        const impMatch = impPool.matches[j];
+
+                        if (origMatch.team1Id !== impMatch.team1Id ||
+                            origMatch.team2Id !== impMatch.team2Id ||
+                            origMatch.score1 !== impMatch.score1 ||
+                            origMatch.score2 !== impMatch.score2 ||
+                            origMatch.isPlayed !== impMatch.isPlayed) {
+                            matchesMatch = false;
+                            break;
+                        }
+                    }
+                }
+                assert(matchesMatch, 'Matches identiques');
+
+                return true;
+            } catch (err) {
+                log(`Erreur: ${err.message}`, 'fail');
+                return false;
+            }
+        }
+
+        // Test 7: Round-trip complet
+        function testRoundTrip(tournament) {
+            section('Test 7: Round-trip complet (export → import → export)');
+
+            try {
+                // Premier export
+                const json1 = tournament.toJSON();
+                const jsonString1 = JSON.stringify(json1);
+
+                // Import
+                const imported = Tournament.fromJSON(JSON.parse(jsonString1));
+
+                // Deuxième export
+                const json2 = imported.toJSON();
+                const jsonString2 = JSON.stringify(json2);
+
+                // Les deux JSON doivent être identiques
+                assert(jsonString1.length === jsonString2.length, 'Même taille de JSON');
+                assert(jsonString1 === jsonString2, 'JSON identiques après round-trip');
+
+                return true;
+            } catch (err) {
+                log(`Erreur: ${err.message}`, 'fail');
+                return false;
+            }
+        }
+
+        // Test 8: Cas particuliers
+        function testEdgeCases() {
+            section('Test 8: Cas particuliers');
+
+            try {
+                // Tournoi vide
+                const emptyTournament = new Tournament('Vide', 8);
+                const emptyJson = emptyTournament.toJSON();
+                const importedEmpty = Tournament.fromJSON(emptyJson);
+                assert(importedEmpty.teams.size === 0, 'Tournoi vide importé correctement');
+
+                // Tournoi avec bracket
+                const bracketTournament = new Tournament('Avec Bracket', 16);
+                for (let i = 1; i <= 16; i++) {
+                    bracketTournament.addTeam(`Team ${i}`);
+                }
+                bracketTournament.createPools([4, 4, 4, 4]);
+
+                // Jouer tous les matches
+                bracketTournament.pools.forEach(pool => {
+                    pool.matches.forEach(match => {
+                        match.setScore(4000, 3000);
+                        bracketTournament.updateTeamStats(match);
+                    });
+                });
+
+                // Démarrer le bracket
+                bracketTournament.startBracketPhase();
+                assert(bracketTournament.bracket !== null, 'Bracket créé');
+
+                // Export/Import avec bracket
+                const bracketJson = bracketTournament.toJSON();
+                const importedBracket = Tournament.fromJSON(bracketJson);
+                assert(importedBracket.bracket !== null, 'Bracket importé correctement');
+                assert(importedBracket.bracket.rounds.length === bracketTournament.bracket.rounds.length,
+                       'Même nombre de rounds');
+
+                return true;
+            } catch (err) {
+                log(`Erreur: ${err.message}`, 'fail');
+                return false;
+            }
+        }
+
+        // Exécuter tous les tests
+        function runAllTests() {
+            clearResults();
+            document.getElementById('runTestsBtn').disabled = true;
+
+            try {
+                const tournament = testCreateTournament();
+                if (!tournament) return;
+
+                if (!testCreatePools(tournament)) return;
+                if (!testPlayMatches(tournament)) return;
+
+                const json = testExport(tournament);
+                if (!json) return;
+
+                const imported = testImport(json);
+                if (!imported) return;
+
+                testIntegrity(tournament, imported);
+                testRoundTrip(tournament);
+                testEdgeCases();
+
+            } catch (err) {
+                log(`Erreur fatale: ${err.message}`, 'fail');
+            } finally {
+                displayResults();
+                document.getElementById('runTestsBtn').disabled = false;
+            }
+        }
+
+        // Auto-run on load
+        window.onload = () => {
+            setTimeout(runAllTests, 500);
+        };
+    </script>
+</body>
+</html>

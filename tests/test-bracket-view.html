@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test BracketView - Tournoi de Coinche</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>🃏 Test BracketView</h1>
+        </header>
+        <main id="main-content"></main>
+    </div>
+
+    <!-- Models -->
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Bracket.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+
+    <!-- Components -->
+    <script src="../js/components/Button.js"></script>
+    <script src="../js/components/Form.js"></script>
+
+    <!-- Views -->
+    <script src="../js/views/BracketView.js"></script>
+
+    <!-- Test Script -->
+    <script>
+        // Mock app object for testing
+        const app = {
+            tournament: null,
+            setTournament: function(tournament) {
+                this.tournament = tournament;
+                console.log('Tournament saved');
+            },
+            renderBracket: function() {
+                if (this.tournament) {
+                    const view = new BracketView(this.tournament);
+                    const mainContent = document.getElementById('main-content');
+                    mainContent.innerHTML = view.render();
+                    view.attachEventListeners();
+                }
+            }
+        };
+
+        // Mock router for testing
+        const router = {
+            navigate: function(route) {
+                console.log('Navigating to:', route);
+                alert('Navigation vers: ' + route);
+            }
+        };
+
+        // Create a test tournament with bracket phase
+        function createTestTournament() {
+            const tournament = new Tournament('Tournoi Test Bracket');
+
+            // Create 16 teams
+            const teamNames = [
+                'Les Champions', 'Les Experts', 'Les Pros', 'Les Maîtres',
+                'Les Vainqueurs', 'Les Warriors', 'Les Tigers', 'Les Lions',
+                'Les Eagles', 'Les Sharks', 'Les Dragons', 'Les Phoenix',
+                'Les Titans', 'Les Vikings', 'Les Spartans', 'Les Gladiators'
+            ];
+
+            teamNames.forEach(name => tournament.addTeam(name));
+
+            // Get team IDs
+            const teamIds = Array.from(tournament.teams.keys());
+
+            // Initialize bracket
+            tournament.bracket = new Bracket(teamIds);
+            tournament.bracket.initializeBracket();
+            tournament.phase = 'bracket';
+
+            return tournament;
+        }
+
+        // Scenario 1: Empty bracket (just initialized)
+        function testScenario1() {
+            console.log('=== Scenario 1: Bracket vide (juste initialisé) ===');
+            app.tournament = createTestTournament();
+            app.renderBracket();
+        }
+
+        // Scenario 2: Some matches played in round 1
+        function testScenario2() {
+            console.log('=== Scenario 2: Quelques matches joués au round 1 ===');
+            const tournament = createTestTournament();
+            const bracket = tournament.bracket;
+
+            // Play first 3 matches of round 1
+            bracket.rounds[0][0].setScore(162, 140);
+            bracket.rounds[0][1].setScore(155, 148);
+            bracket.rounds[0][2].setScore(170, 130);
+
+            app.tournament = tournament;
+            app.renderBracket();
+        }
+
+        // Scenario 3: Round 1 complete, round 2 started
+        function testScenario3() {
+            console.log('=== Scenario 3: Round 1 terminé, round 2 commencé ===');
+            const tournament = createTestTournament();
+            const bracket = tournament.bracket;
+
+            // Complete all round 1 matches
+            bracket.rounds[0].forEach((match, i) => {
+                match.setScore(160 + i * 2, 140 - i);
+            });
+
+            // Advance winners to round 2
+            bracket.advanceWinners(0);
+
+            // Play first match of round 2
+            if (bracket.rounds[1]) {
+                bracket.rounds[1][0].setScore(165, 145);
+            }
+
+            app.tournament = tournament;
+            app.renderBracket();
+        }
+
+        // Scenario 4: Semi-finals
+        function testScenario4() {
+            console.log('=== Scenario 4: Demi-finales ===');
+            const tournament = createTestTournament();
+            const bracket = tournament.bracket;
+
+            // Complete round 1
+            bracket.rounds[0].forEach((match, i) => {
+                match.setScore(160 + i * 2, 140 - i);
+            });
+            bracket.advanceWinners(0);
+
+            // Complete round 2
+            bracket.rounds[1].forEach((match, i) => {
+                match.setScore(170 + i * 3, 135 - i);
+            });
+            bracket.advanceWinners(1);
+
+            // Play one semi-final
+            if (bracket.rounds[2]) {
+                bracket.rounds[2][0].setScore(180, 145);
+            }
+
+            app.tournament = tournament;
+            app.renderBracket();
+        }
+
+        // Scenario 5: Tournament complete (champion)
+        function testScenario5() {
+            console.log('=== Scenario 5: Tournoi terminé (champion) ===');
+            const tournament = createTestTournament();
+            const bracket = tournament.bracket;
+
+            // Complete all rounds
+            // Round 1
+            bracket.rounds[0].forEach((match, i) => {
+                match.setScore(160 + i * 2, 140 - i);
+            });
+            bracket.advanceWinners(0);
+
+            // Round 2
+            bracket.rounds[1].forEach((match, i) => {
+                match.setScore(170 + i * 3, 135 - i);
+            });
+            bracket.advanceWinners(1);
+
+            // Round 3 (Semi-finals)
+            bracket.rounds[2].forEach((match, i) => {
+                match.setScore(180 + i * 2, 145 - i);
+            });
+            bracket.advanceWinners(2);
+
+            // Round 4 (Final)
+            if (bracket.rounds[3]) {
+                bracket.rounds[3][0].setScore(200, 175);
+            }
+
+            tournament.phase = 'finished';
+            app.tournament = tournament;
+            app.renderBracket();
+        }
+
+        // Create buttons to test different scenarios
+        window.addEventListener('DOMContentLoaded', function() {
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                <div style="max-width: 1200px; margin: 2rem auto; text-align: center;">
+                    <h2>Choisissez un scénario de test</h2>
+                    <div class="action-buttons" style="margin-top: 2rem;">
+                        <button class="btn-primary" onclick="testScenario1()">Scenario 1: Bracket vide</button>
+                        <button class="btn-primary" onclick="testScenario2()">Scenario 2: Quelques matches joués</button>
+                        <button class="btn-primary" onclick="testScenario3()">Scenario 3: Round 2 en cours</button>
+                        <button class="btn-primary" onclick="testScenario4()">Scenario 4: Demi-finales</button>
+                        <button class="btn-primary" onclick="testScenario5()">Scenario 5: Champion</button>
+                    </div>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

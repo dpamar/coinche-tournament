@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test CorrectionView - Tournoi de Coinche</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>🃏 Test CorrectionView</h1>
+            <nav id="main-nav"></nav>
+        </header>
+        <main id="main-content"></main>
+    </div>
+
+    <!-- Models -->
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Bracket.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+
+    <!-- Components -->
+    <script src="../js/components/Button.js"></script>
+    <script src="../js/components/Table.js"></script>
+
+    <!-- Views -->
+    <script src="../js/views/CorrectionView.js"></script>
+
+    <!-- Test Script -->
+    <script>
+        // Create a test tournament with sample data
+        function createTestTournament() {
+            const tournament = new Tournament('Tournoi de Test');
+
+            // Add 8 teams
+            const team1 = tournament.addTeam('Les As');
+            const team2 = tournament.addTeam('Les Rois');
+            const team3 = tournament.addTeam('Les Dames');
+            const team4 = tournament.addTeam('Les Valets');
+            const team5 = tournament.addTeam('Les Champions');
+            const team6 = tournament.addTeam('Les Maîtres');
+            const team7 = tournament.addTeam('Les Experts');
+            const team8 = tournament.addTeam('Les Pros');
+
+            // Create 2 pools of 4 teams each
+            tournament.createPools([4, 4]);
+
+            // Add some played matches to pool 1
+            tournament.pools[0].matches[0].setScore(150, 100);
+            tournament.pools[0].matches[1].setScore(130, 120);
+            tournament.pools[0].matches[2].setScore(160, 90);
+
+            // Add some played matches to pool 2
+            tournament.pools[1].matches[0].setScore(140, 110);
+            tournament.pools[1].matches[1].setScore(125, 125);
+
+            // Update team stats
+            tournament.pools.forEach(pool => {
+                pool.matches.forEach(match => {
+                    if (match.isPlayed) {
+                        const team1 = tournament.teams.get(match.team1Id);
+                        const team2 = tournament.teams.get(match.team2Id);
+
+                        if (team1) {
+                            team1.matchesPlayed++;
+                            team1.pointsScored += match.score1;
+                            team1.pointsConceded += match.score2;
+                            if (match.score1 > match.score2) team1.matchesWon++;
+                        }
+
+                        if (team2) {
+                            team2.matchesPlayed++;
+                            team2.pointsScored += match.score2;
+                            team2.pointsConceded += match.score1;
+                            if (match.score2 > match.score1) team2.matchesWon++;
+                        }
+                    }
+                });
+            });
+
+            return tournament;
+        }
+
+        // Create test tournament with bracket phase
+        function createTestTournamentWithBracket() {
+            const tournament = new Tournament('Tournoi Complet');
+
+            // Add 16 teams
+            for (let i = 1; i <= 16; i++) {
+                tournament.addTeam(`Équipe ${i}`);
+            }
+
+            // Create 4 pools of 4 teams each
+            tournament.createPools([4, 4, 4, 4]);
+
+            // Mark all pool matches as played with sample scores
+            tournament.pools.forEach((pool, poolIndex) => {
+                pool.matches.forEach((match, matchIndex) => {
+                    const score1 = 100 + Math.floor(Math.random() * 60);
+                    const score2 = 100 + Math.floor(Math.random() * 60);
+                    match.setScore(score1, score2);
+
+                    // Update team stats
+                    const team1 = tournament.teams.get(match.team1Id);
+                    const team2 = tournament.teams.get(match.team2Id);
+
+                    if (team1) {
+                        team1.matchesPlayed++;
+                        team1.pointsScored += match.score1;
+                        team1.pointsConceded += match.score2;
+                        if (match.score1 > match.score2) team1.matchesWon++;
+                    }
+
+                    if (team2) {
+                        team2.matchesPlayed++;
+                        team2.pointsScored += match.score2;
+                        team2.pointsConceded += match.score1;
+                        if (match.score2 > match.score1) team2.matchesWon++;
+                    }
+                });
+            });
+
+            // Start bracket phase
+            tournament.startBracketPhase();
+
+            // Play some bracket matches
+            if (tournament.bracket && tournament.bracket.rounds.length > 0) {
+                tournament.bracket.rounds[0].forEach((match, idx) => {
+                    if (idx < 3) {
+                        match.setScore(150, 130);
+                    }
+                });
+            }
+
+            return tournament;
+        }
+
+        // Mock app object
+        const app = {
+            setTournament: function(tournament) {
+                console.log('Tournament saved:', tournament);
+                tournament.save();
+            }
+        };
+
+        // Mock router object
+        const router = {
+            navigate: function(path) {
+                console.log('Navigate to:', path);
+            }
+        };
+
+        // Initialize test
+        function init() {
+            // Create test tournament
+            const tournament = createTestTournament();
+            // const tournament = createTestTournamentWithBracket(); // Uncomment to test with bracket
+
+            // Create and render view
+            const view = new CorrectionView(tournament);
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = view.render();
+            view.attachEventListeners();
+
+            console.log('Test initialized with tournament:', tournament);
+        }
+
+        // Run test when page loads
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

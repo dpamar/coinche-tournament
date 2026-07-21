@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Feuille de Matches</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        body {
+            padding: 2rem;
+        }
+        .test-section {
+            background: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            color: #2563eb;
+            margin-bottom: 1rem;
+        }
+        .test-info {
+            background: #eff6ff;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-section">
+        <h2>Test de la Feuille de Matches</h2>
+        <div class="test-info">
+            <p><strong>Objectif :</strong> Vérifier que la feuille de matches s'affiche correctement</p>
+            <p><strong>Scenario :</strong> Tournoi avec 4 poules de 4 équipes en phase de poules</p>
+        </div>
+        <button onclick="testPoolPhaseSheet()" class="btn-primary">Tester Phase de Poules</button>
+        <button onclick="testBracketPhaseSheet()" class="btn-primary">Tester Phase Éliminatoire</button>
+        <button onclick="testPrintStyles()" class="btn-secondary">Tester Aperçu Impression</button>
+    </div>
+
+    <div id="test-output"></div>
+
+    <!-- Models -->
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Bracket.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+
+    <!-- Managers -->
+    <script src="../js/managers/StorageManager.js"></script>
+
+    <!-- Components -->
+    <script src="../js/components/Button.js"></script>
+
+    <!-- Views -->
+    <script src="../js/views/MatchSheetView.js"></script>
+
+    <!-- Router (minimal mock) -->
+    <script>
+        const router = {
+            navigate: (route) => console.log('Navigate to:', route)
+        };
+
+        const app = {
+            tournament: null
+        };
+
+        function goBack() {
+            console.log('Going back...');
+        }
+
+        function testPoolPhaseSheet() {
+            // Create a test tournament with 4 pools of 4 teams
+            const teams = [];
+            const teamIds = [];
+
+            // Create 16 teams
+            for (let i = 0; i < 16; i++) {
+                const team = new Team(`Équipe ${i + 1}`);
+                teams.push(team);
+                teamIds.push(team.id);
+            }
+
+            // Create tournament
+            const tournament = new Tournament('Tournoi Test', teamIds);
+            tournament.teams = new Map(teams.map(t => [t.id, t]));
+
+            // Generate pools with 4 teams each
+            tournament.generatePools(4, 4);
+
+            // Play some matches in each pool to simulate partial progress
+            tournament.pools.forEach((pool, poolIndex) => {
+                // Play first 2 matches (Round 1)
+                if (pool.matches.length >= 2) {
+                    pool.matches[0].setScore(1520, 480);
+                    pool.matches[1].setScore(1000, 1000);
+                }
+            });
+
+            tournament.phase = 'pool';
+
+            // Render the match sheet
+            const view = new MatchSheetView(tournament);
+            const html = view.render();
+
+            const output = document.getElementById('test-output');
+            output.innerHTML = html;
+
+            console.log('✅ Phase de poules - Feuille de matches générée');
+        }
+
+        function testBracketPhaseSheet() {
+            // Create a test tournament in bracket phase
+            const teams = [];
+            const teamIds = [];
+
+            // Create 16 teams
+            for (let i = 0; i < 16; i++) {
+                const team = new Team(`Équipe ${i + 1}`);
+                teams.push(team);
+                teamIds.push(team.id);
+            }
+
+            // Create tournament
+            const tournament = new Tournament('Tournoi Test - Phase Finale', teamIds);
+            tournament.teams = new Map(teams.map(t => [t.id, t]));
+
+            // Generate bracket
+            tournament.bracket = new Bracket(teamIds);
+            tournament.phase = 'bracket';
+
+            // Play some first round matches
+            if (tournament.bracket.rounds[0]) {
+                tournament.bracket.rounds[0][0].setScore(1600, 1400);
+                tournament.bracket.rounds[0][1].setScore(1800, 1200);
+            }
+
+            // Render the match sheet
+            const view = new MatchSheetView(tournament);
+            const html = view.render();
+
+            const output = document.getElementById('test-output');
+            output.innerHTML = html;
+
+            console.log('✅ Phase éliminatoire - Feuille de matches générée');
+        }
+
+        function testPrintStyles() {
+            alert('Utilisez Ctrl+P (ou Cmd+P sur Mac) pour voir l\'aperçu avant impression.\nLes boutons et éléments non imprimables seront masqués.');
+        }
+    </script>
+</body>
+</html>

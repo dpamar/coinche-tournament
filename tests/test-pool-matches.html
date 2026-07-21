@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Génération des Matches de Poule</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            font-size: 1.3em;
+            color: #007bff;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        .match-list {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .match-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .pool-info {
+            background: #e9ecef;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏆 Tests de Génération des Matches de Poule</h1>
+
+    <div id="test-results"></div>
+
+    <!-- Chargement des modèles -->
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+
+    <script>
+        const resultsDiv = document.getElementById('test-results');
+
+        function addTestSection(title) {
+            const section = document.createElement('div');
+            section.className = 'test-section';
+            const titleElement = document.createElement('div');
+            titleElement.className = 'test-title';
+            titleElement.textContent = title;
+            section.appendChild(titleElement);
+            resultsDiv.appendChild(section);
+            return section;
+        }
+
+        function addResult(section, message, className = 'info') {
+            const p = document.createElement('p');
+            p.className = className;
+            p.textContent = message;
+            section.appendChild(p);
+        }
+
+        function addMatchList(section, matches, teams) {
+            const matchListDiv = document.createElement('div');
+            matchListDiv.className = 'match-list';
+
+            matches.forEach((match, index) => {
+                const matchItem = document.createElement('div');
+                matchItem.className = 'match-item';
+                const team1Name = teams.get(match.team1Id)?.name || match.team1Id;
+                const team2Name = teams.get(match.team2Id)?.name || match.team2Id;
+                matchItem.textContent = `Match ${index + 1}: ${team1Name} vs ${team2Name}`;
+                matchListDiv.appendChild(matchItem);
+            });
+
+            section.appendChild(matchListDiv);
+        }
+
+        function addStats(section, stats) {
+            const statsDiv = document.createElement('div');
+            statsDiv.className = 'stats';
+
+            for (const [label, value] of Object.entries(stats)) {
+                const statBox = document.createElement('div');
+                statBox.className = 'stat-box';
+                statBox.innerHTML = `
+                    <div class="stat-label">${label}</div>
+                    <div class="stat-value">${value}</div>
+                `;
+                statsDiv.appendChild(statBox);
+            }
+
+            section.appendChild(statsDiv);
+        }
+
+        // Test 1: Poule de 4 équipes
+        function testPoolOf4() {
+            const section = addTestSection('Test 1: Poule de 4 équipes');
+
+            try {
+                const teams = ['team_1', 'team_2', 'team_3', 'team_4'];
+                const teamsMap = new Map();
+                teams.forEach(id => {
+                    teamsMap.set(id, new Team(`Équipe ${id.split('_')[1]}`, id));
+                });
+
+                const pool = new Pool('pool_test_4', teams);
+                pool.generateMatches();
+
+                const expectedMatches = 6; // C(4,2) = 6
+                const actualMatches = pool.matches.length;
+
+                addStats(section, {
+                    'Nombre d\'équipes': teams.length,
+                    'Matches générés': actualMatches,
+                    'Matches attendus': expectedMatches
+                });
+
+                if (actualMatches === expectedMatches) {
+                    addResult(section, '✓ Nombre de matches correct !', 'success');
+                } else {
+                    addResult(section, `✗ Erreur: ${actualMatches} matches générés au lieu de ${expectedMatches}`, 'error');
+                }
+
+                addResult(section, 'Liste des matches:', 'info');
+                addMatchList(section, pool.matches, teamsMap);
+
+                // Vérifier que chaque équipe joue 3 matches
+                const matchCounts = {};
+                teams.forEach(id => matchCounts[id] = 0);
+
+                pool.matches.forEach(match => {
+                    matchCounts[match.team1Id]++;
+                    matchCounts[match.team2Id]++;
+                });
+
+                const allTeamsPlay3 = Object.values(matchCounts).every(count => count === 3);
+                if (allTeamsPlay3) {
+                    addResult(section, '✓ Chaque équipe joue exactement 3 matches', 'success');
+                } else {
+                    addResult(section, '✗ Erreur: Toutes les équipes ne jouent pas 3 matches', 'error');
+                    addResult(section, JSON.stringify(matchCounts), 'error');
+                }
+
+            } catch (error) {
+                addResult(section, `✗ Exception: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 2: Poule de 5 équipes (sans inter-poules)
+        function testPoolOf5Internal() {
+            const section = addTestSection('Test 2: Poule de 5 équipes (matches internes uniquement)');
+
+            try {
+                const teams = ['team_1', 'team_2', 'team_3', 'team_4', 'team_5'];
+                const teamsMap = new Map();
+                teams.forEach(id => {
+                    teamsMap.set(id, new Team(`Équipe ${id.split('_')[1]}`, id));
+                });
+
+                const pool = new Pool('pool_test_5', teams);
+                pool.generateMatches();
+
+                const expectedMatches = 6; // C(4,2) = 6 (les 4 premières équipes)
+                const actualMatches = pool.matches.length;
+
+                addStats(section, {
+                    'Nombre d\'équipes': teams.length,
+                    'Matches internes générés': actualMatches,
+                    'Matches internes attendus': expectedMatches
+                });
+
+                if (actualMatches === expectedMatches) {
+                    addResult(section, '✓ Nombre de matches internes correct !', 'success');
+                } else {
+                    addResult(section, `✗ Erreur: ${actualMatches} matches générés au lieu de ${expectedMatches}`, 'error');
+                }
+
+                addResult(section, 'Liste des matches internes (4 premières équipes):', 'info');
+                addMatchList(section, pool.matches, teamsMap);
+
+                // Vérifier que la 5ème équipe ne joue aucun match interne
+                const fifthTeamId = teams[4];
+                const fifthTeamMatches = pool.matches.filter(m =>
+                    m.team1Id === fifthTeamId || m.team2Id === fifthTeamId
+                );
+
+                if (fifthTeamMatches.length === 0) {
+                    addResult(section, '✓ La 5ème équipe ne joue aucun match interne (correct)', 'success');
+                } else {
+                    addResult(section, `✗ Erreur: La 5ème équipe joue ${fifthTeamMatches.length} matches internes`, 'error');
+                }
+
+            } catch (error) {
+                addResult(section, `✗ Exception: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 3: Tournoi complet avec 2 poules de 5 (inter-poules)
+        function testInterPoolMatches() {
+            const section = addTestSection('Test 3: Tournoi avec 2 poules de 5 (inter-poules)');
+
+            try {
+                const tournament = new Tournament('Test Inter-Poules');
+
+                // Ajouter 10 équipes
+                for (let i = 1; i <= 10; i++) {
+                    tournament.addTeam(`Équipe ${i}`);
+                }
+
+                // Créer 2 poules de 5
+                tournament.createPools([5, 5]);
+
+                addStats(section, {
+                    'Nombre de poules': tournament.pools.length,
+                    'Équipes par poule': '5 + 5'
+                });
+
+                // Vérifier la Poule 1
+                const pool1 = tournament.pools[0];
+                const pool1InternalMatches = pool1.matches.filter(m => {
+                    const team1Index = pool1.teams.indexOf(m.team1Id);
+                    const team2Index = pool1.teams.indexOf(m.team2Id);
+                    return team1Index < 4 && team2Index < 4;
+                }).length;
+
+                const pool1InterMatches = pool1.matches.length - pool1InternalMatches;
+
+                addResult(section, 'Poule 1:', 'info');
+                addStats(section, {
+                    'Matches internes': pool1InternalMatches,
+                    'Matches inter-poules': pool1InterMatches,
+                    'Total matches': pool1.matches.length
+                });
+
+                // Vérifier la Poule 2
+                const pool2 = tournament.pools[1];
+                const pool2InternalMatches = pool2.matches.filter(m => {
+                    const team1Index = pool2.teams.indexOf(m.team1Id);
+                    const team2Index = pool2.teams.indexOf(m.team2Id);
+                    return team1Index < 4 && team2Index < 4;
+                }).length;
+
+                const pool2InterMatches = pool2.matches.length - pool2InternalMatches;
+
+                addResult(section, 'Poule 2:', 'info');
+                addStats(section, {
+                    'Matches internes': pool2InternalMatches,
+                    'Matches inter-poules': pool2InterMatches,
+                    'Total matches': pool2.matches.length
+                });
+
+                // Vérifications
+                const totalInterMatches = pool1InterMatches + pool2InterMatches;
+
+                if (pool1InternalMatches === 6 && pool2InternalMatches === 6) {
+                    addResult(section, '✓ Chaque poule a 6 matches internes (correct)', 'success');
+                } else {
+                    addResult(section, '✗ Erreur: Nombre de matches internes incorrect', 'error');
+                }
+
+                if (totalInterMatches === 3) {
+                    addResult(section, '✓ Total de 3 matches inter-poules (correct)', 'success');
+                } else {
+                    addResult(section, `✗ Erreur: ${totalInterMatches} matches inter-poules au lieu de 3`, 'error');
+                }
+
+                // Vérifier que les 5èmes équipes jouent bien ensemble
+                const fifthTeam1 = pool1.getFifthTeam();
+                const fifthTeam2 = pool2.getFifthTeam();
+
+                const interPoolMatchesPool1 = pool1.matches.filter(m =>
+                    (m.team1Id === fifthTeam1 || m.team2Id === fifthTeam1) &&
+                    (m.team1Id === fifthTeam2 || m.team2Id === fifthTeam2)
+                );
+
+                const interPoolMatchesPool2 = pool2.matches.filter(m =>
+                    (m.team1Id === fifthTeam1 || m.team2Id === fifthTeam1) &&
+                    (m.team1Id === fifthTeam2 || m.team2Id === fifthTeam2)
+                );
+
+                if (interPoolMatchesPool1.length === 2 && interPoolMatchesPool2.length === 1) {
+                    addResult(section, '✓ Répartition correcte: 2 matches dans Poule 1, 1 match dans Poule 2', 'success');
+                } else {
+                    addResult(section, `✗ Erreur: Répartition incorrecte (Poule 1: ${interPoolMatchesPool1.length}, Poule 2: ${interPoolMatchesPool2.length})`, 'error');
+                }
+
+                // Afficher les matches inter-poules
+                addResult(section, 'Matches inter-poules (Poule 1):', 'info');
+                addMatchList(section, interPoolMatchesPool1, tournament.teams);
+
+                addResult(section, 'Matches inter-poules (Poule 2):', 'info');
+                addMatchList(section, interPoolMatchesPool2, tournament.teams);
+
+            } catch (error) {
+                addResult(section, `✗ Exception: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 4: Tournoi complet mixte (4 + 4 + 5 + 5)
+        function testMixedPools() {
+            const section = addTestSection('Test 4: Tournoi mixte (4 + 4 + 5 + 5)');
+
+            try {
+                const tournament = new Tournament('Test Mixte');
+
+                // Ajouter 18 équipes
+                for (let i = 1; i <= 18; i++) {
+                    tournament.addTeam(`Équipe ${i}`);
+                }
+
+                // Créer 2 poules de 4 et 2 poules de 5
+                tournament.createPools([4, 4, 5, 5]);
+
+                addStats(section, {
+                    'Nombre de poules': tournament.pools.length,
+                    'Configuration': '4 + 4 + 5 + 5'
+                });
+
+                let totalMatches = 0;
+                tournament.pools.forEach((pool, index) => {
+                    const poolSize = pool.teams.length;
+                    const matchCount = pool.matches.length;
+                    totalMatches += matchCount;
+
+                    const expectedMatches = poolSize === 4 ? 6 : (poolSize === 5 ? 6 : 0);
+                    const isCorrect = matchCount >= expectedMatches; // >= car les poules de 5 ont des inter-poules
+
+                    addResult(section, `Poule ${index + 1} (${poolSize} équipes): ${matchCount} matches`,
+                        isCorrect ? 'success' : 'error');
+                });
+
+                addStats(section, {
+                    'Total de matches': totalMatches,
+                    'Attendu minimum': '6 + 6 + (6+2) + (6+1) = 27'
+                });
+
+                if (totalMatches === 27) {
+                    addResult(section, '✓ Nombre total de matches correct !', 'success');
+                } else {
+                    addResult(section, `✗ Nombre total: ${totalMatches} (attendu: 27)`, 'error');
+                }
+
+                // Vérifier les poules de 4
+                for (let i = 0; i < 2; i++) {
+                    const pool = tournament.pools[i];
+                    if (pool.teams.length === 4 && pool.matches.length === 6) {
+                        addResult(section, `✓ Poule ${i + 1} correcte (4 équipes, 6 matches)`, 'success');
+                    } else {
+                        addResult(section, `✗ Poule ${i + 1} incorrecte`, 'error');
+                    }
+                }
+
+                // Vérifier les poules de 5
+                const pool3Matches = tournament.pools[2].matches.length;
+                const pool4Matches = tournament.pools[3].matches.length;
+
+                if ((pool3Matches === 8 && pool4Matches === 7) || (pool3Matches === 7 && pool4Matches === 8)) {
+                    addResult(section, '✓ Poules de 5 correctes (6 internes + 2/1 inter-poules)', 'success');
+                } else {
+                    addResult(section, `✗ Poules de 5 incorrectes (Poule 3: ${pool3Matches}, Poule 4: ${pool4Matches})`, 'error');
+                }
+
+            } catch (error) {
+                addResult(section, `✗ Exception: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 5: Validation des erreurs
+        function testErrorValidation() {
+            const section = addTestSection('Test 5: Validation des erreurs');
+
+            // Test 5.1: Nombre impair de poules de 5
+            try {
+                const tournament = new Tournament('Test Erreur');
+                for (let i = 1; i <= 9; i++) {
+                    tournament.addTeam(`Équipe ${i}`);
+                }
+
+                try {
+                    tournament.createPools([4, 5]); // 1 poule de 5 (impair)
+                    addResult(section, '✗ Devrait lever une erreur pour un nombre impair de poules de 5', 'error');
+                } catch (e) {
+                    addResult(section, '✓ Erreur correctement levée pour nombre impair de poules de 5', 'success');
+                    addResult(section, `   Message: ${e.message}`, 'info');
+                }
+            } catch (error) {
+                addResult(section, `✗ Exception inattendue: ${error.message}`, 'error');
+            }
+
+            // Test 5.2: Taille de poule invalide
+            try {
+                const pool = new Pool('test', ['team_1', 'team_2', 'team_3']); // 3 équipes
+                try {
+                    pool.generateMatches();
+                    addResult(section, '✗ Devrait lever une erreur pour une poule de 3 équipes', 'error');
+                } catch (e) {
+                    addResult(section, '✓ Erreur correctement levée pour taille de poule invalide', 'success');
+                    addResult(section, `   Message: ${e.message}`, 'info');
+                }
+            } catch (error) {
+                addResult(section, `✗ Exception inattendue: ${error.message}`, 'error');
+            }
+        }
+
+        // Exécuter tous les tests
+        testPoolOf4();
+        testPoolOf5Internal();
+        testInterPoolMatches();
+        testMixedPools();
+        testErrorValidation();
+
+        // Ajouter un résumé final
+        const summarySection = addTestSection('📊 Résumé');
+        addResult(summarySection, 'Tous les tests ont été exécutés. Vérifiez les résultats ci-dessus.', 'info');
+        addResult(summarySection, 'Les symboles ✓ indiquent les tests réussis, ✗ les échecs.', 'info');
+    </script>
+</body>
+</html>

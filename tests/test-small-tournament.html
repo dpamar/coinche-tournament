@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Petit Tournoi - 8 équipes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Petit Tournoi - Support 4 équipes qualifiées</h1>
+
+    <div id="test-results"></div>
+
+    <!-- Load models -->
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Bracket.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+
+    <script>
+        const results = [];
+
+        function testResult(name, passed, details = '') {
+            results.push({
+                name,
+                passed,
+                details
+            });
+        }
+
+        // Test 1: Bracket avec 4 équipes
+        console.log('Test 1: Création Bracket 4 équipes');
+        try {
+            const teams4 = ['team1', 'team2', 'team3', 'team4'];
+            const bracket4 = new Bracket(teams4);
+            bracket4.initializeBracket();
+
+            const expectedRounds = Math.log2(4); // = 2
+            testResult(
+                'Bracket 4 équipes - rounds créés',
+                bracket4.rounds.length === 1 && expectedRounds === 2,
+                `Rounds créés: ${bracket4.rounds.length}, Rounds attendus au total: ${expectedRounds}`
+            );
+
+            testResult(
+                'Bracket 4 équipes - premier round (demi-finales)',
+                bracket4.rounds[0].length === 2,
+                `Matches dans les demi-finales: ${bracket4.rounds[0].length}`
+            );
+
+            const roundName0 = bracket4.getRoundName(0);
+            const roundName1 = bracket4.getRoundName(1);
+            testResult(
+                'Bracket 4 équipes - noms des rounds',
+                roundName0 === 'Demi-finales' && roundName1 === 'Finale',
+                `Round 0: "${roundName0}", Round 1: "${roundName1}"`
+            );
+        } catch (e) {
+            testResult('Bracket 4 équipes', false, `Erreur: ${e.message}`);
+        }
+
+        // Test 2: Tournoi 8 équipes avec 4 qualifiés
+        console.log('\nTest 2: Tournoi 8 équipes avec 4 qualifiés');
+        try {
+            const tournament = new Tournament('Test 8 équipes', 4);
+
+            // Ajouter 8 équipes
+            const teamNames = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            teamNames.forEach(name => tournament.addTeam(`Équipe ${name}`));
+
+            // Créer 2 poules de 4
+            tournament.createPools([4, 4]);
+
+            testResult(
+                'Tournoi 8 équipes - création',
+                tournament.teams.size === 8 && tournament.pools.length === 2,
+                `Équipes: ${tournament.teams.size}, Poules: ${tournament.pools.length}`
+            );
+
+            // Simuler quelques résultats pour avoir un classement
+            tournament.pools.forEach(pool => {
+                pool.matches.forEach((match, idx) => {
+                    if (idx < 3) { // Simuler 3 matches par poule
+                        match.setScore(100 + idx * 10, 50 + idx * 5);
+                        tournament.updateTeamStats(match);
+                    }
+                });
+            });
+
+            // Marquer tous les matches comme joués pour tester la qualification
+            tournament.pools.forEach(pool => {
+                pool.matches.forEach(match => {
+                    if (!match.isPlayed) {
+                        match.setScore(100, 50);
+                        tournament.updateTeamStats(match);
+                    }
+                });
+            });
+
+            const qualified = tournament.getQualifiedTeams();
+            testResult(
+                'Tournoi 8 équipes - 4 qualifiés',
+                qualified.length === 4,
+                `Équipes qualifiées: ${qualified.length}`
+            );
+
+            // Démarrer la phase éliminatoire
+            const started = tournament.startBracketPhase();
+            testResult(
+                'Tournoi 8 équipes - démarrage bracket',
+                started && tournament.bracket && tournament.bracket.teams.length === 4,
+                `Bracket créé avec ${tournament.bracket ? tournament.bracket.teams.length : 0} équipes`
+            );
+
+        } catch (e) {
+            testResult('Tournoi 8 équipes', false, `Erreur: ${e.message}\n${e.stack}`);
+        }
+
+        // Test 3: Tournoi 10 équipes avec 4 qualifiés
+        console.log('\nTest 3: Tournoi 10 équipes avec 4 qualifiés');
+        try {
+            const tournament10 = new Tournament('Test 10 équipes', 4);
+
+            // Ajouter 10 équipes
+            for (let i = 1; i <= 10; i++) {
+                tournament10.addTeam(`Équipe ${i}`);
+            }
+
+            // Créer 2 poules de 5
+            tournament10.createPools([5, 5]);
+
+            testResult(
+                'Tournoi 10 équipes - création',
+                tournament10.teams.size === 10 && tournament10.pools.length === 2,
+                `Équipes: ${tournament10.teams.size}, Poules: ${tournament10.pools.length}`
+            );
+
+        } catch (e) {
+            testResult('Tournoi 10 équipes', false, `Erreur: ${e.message}`);
+        }
+
+        // Test 4: Tournoi 12 équipes avec 4 qualifiés
+        console.log('\nTest 4: Tournoi 12 équipes avec 4 qualifiés');
+        try {
+            const tournament12 = new Tournament('Test 12 équipes', 4);
+
+            // Ajouter 12 équipes
+            for (let i = 1; i <= 12; i++) {
+                tournament12.addTeam(`Équipe ${i}`);
+            }
+
+            // Créer 3 poules de 4
+            tournament12.createPools([4, 4, 4]);
+
+            testResult(
+                'Tournoi 12 équipes - création',
+                tournament12.teams.size === 12 && tournament12.pools.length === 3,
+                `Équipes: ${tournament12.teams.size}, Poules: ${tournament12.pools.length}`
+            );
+
+        } catch (e) {
+            testResult('Tournoi 12 équipes', false, `Erreur: ${e.message}`);
+        }
+
+        // Test 5: Tournoi 14 équipes avec 4 qualifiés
+        console.log('\nTest 5: Tournoi 14 équipes avec 4 qualifiés');
+        try {
+            const tournament14 = new Tournament('Test 14 équipes', 4);
+
+            // Ajouter 14 équipes
+            for (let i = 1; i <= 14; i++) {
+                tournament14.addTeam(`Équipe ${i}`);
+            }
+
+            // Créer 1 poule de 4 + 2 poules de 5
+            tournament14.createPools([4, 5, 5]);
+
+            testResult(
+                'Tournoi 14 équipes - création',
+                tournament14.teams.size === 14 && tournament14.pools.length === 3,
+                `Équipes: ${tournament14.teams.size}, Poules: ${tournament14.pools.length}`
+            );
+
+        } catch (e) {
+            testResult('Tournoi 14 équipes', false, `Erreur: ${e.message}`);
+        }
+
+        // Afficher les résultats
+        const container = document.getElementById('test-results');
+        const passed = results.filter(r => r.passed).length;
+        const total = results.length;
+
+        container.innerHTML = `
+            <div class="test-section ${passed === total ? 'success' : 'error'}">
+                <h2>Résumé: ${passed}/${total} tests réussis</h2>
+            </div>
+            ${results.map(r => `
+                <div class="test-section ${r.passed ? 'success' : 'error'}">
+                    <h3>${r.passed ? '✓' : '✗'} ${r.name}</h3>
+                    ${r.details ? `<pre>${r.details}</pre>` : ''}
+                </div>
+            `).join('')}
+        `;
+
+        console.log(`\n=== Résumé: ${passed}/${total} tests réussis ===`);
+    </script>
+</body>
+</html>
