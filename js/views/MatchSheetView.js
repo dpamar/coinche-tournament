@@ -64,9 +64,7 @@ class MatchSheetView {
         }
 
         let html = '<div class="match-sheet-pools">';
-        const isInterPoolRound = globalRound === 3;
-        const roundTitle = isInterPoolRound ? 'Round 4 - Matches Inter-Poules' : `Round ${globalRound + 1}`;
-        html += `<div class="match-sheet-header"><h2>${roundTitle}</h2></div>`;
+        html += `<div class="match-sheet-header"><h2>Round ${globalRound + 1}</h2></div>`;
 
         // Parcourir chaque poule
         this.tournament.pools.forEach((pool, poolIndex) => {
@@ -119,30 +117,13 @@ class MatchSheetView {
     }
 
     /**
-     * Détermine le round actuel pour une poule (0, 1, 2 ou 3)
-     * Round 0-2 : matches internes (0-5)
-     * Round 3 : matches inter-poules (6+) si la poule a 5 équipes
+     * Détermine le round actuel pour une poule (0, 1 ou 2)
+     * Les matches inter-poules sont joués en parallèle des rounds internes
      */
     getCurrentRoundForPool(pool) {
-        const rounds = [
-            [0, 1], // Round 1: matches 0-1
-            [2, 3], // Round 2: matches 2-3
-            [4, 5], // Round 3: matches 4-5
-            []      // Round 4: matches inter-poules (indices 6+)
-        ];
-
-        // Récupérer les indices des matches inter-poules (après les 6 premiers)
-        const interPoolIndices = [];
-        for (let i = 6; i < pool.matches.length; i++) {
-            interPoolIndices.push(i);
-        }
-        rounds[3] = interPoolIndices;
-
         // Chercher le premier round qui a au moins un match non joué
-        for (let roundIndex = 0; roundIndex < rounds.length; roundIndex++) {
-            const matchIndices = rounds[roundIndex];
-            if (matchIndices.length === 0) continue; // Skip si pas de matches dans ce round
-
+        for (let roundIndex = 0; roundIndex < 3; roundIndex++) {
+            const matchIndices = this.getRoundMatches(pool, roundIndex);
             const hasUnplayedMatch = matchIndices.some(idx =>
                 idx < pool.matches.length && !pool.matches[idx].isPlayed
             );
@@ -157,25 +138,28 @@ class MatchSheetView {
 
     /**
      * Retourne les indices des matches d'un round donné
+     * Inclut les matches internes (2 par round) ET le match inter-poule correspondant (s'il existe)
+     * Round 0: matches 0-1 + match inter-poule index 6
+     * Round 1: matches 2-3 + match inter-poule index 7
+     * Round 2: matches 4-5 + match inter-poule index 8
      */
     getRoundMatches(pool, roundIndex) {
-        const rounds = [
-            [0, 1], // Round 1
-            [2, 3], // Round 2
-            [4, 5], // Round 3
-            []      // Round 4 (inter-poules)
+        const internalMatches = [
+            [0, 1], // Round 1: matches internes 0-1
+            [2, 3], // Round 2: matches internes 2-3
+            [4, 5]  // Round 3: matches internes 4-5
         ];
 
-        // Si c'est le round 4, récupérer tous les matches inter-poules
-        if (roundIndex === 3) {
-            const interPoolIndices = [];
-            for (let i = 6; i < pool.matches.length; i++) {
-                interPoolIndices.push(i);
-            }
-            return interPoolIndices;
+        // Commencer avec les matches internes du round
+        const matches = [...internalMatches[roundIndex]];
+
+        // Ajouter le match inter-poule correspondant s'il existe
+        const interPoolIndex = 6 + roundIndex; // 6, 7 ou 8
+        if (interPoolIndex < pool.matches.length) {
+            matches.push(interPoolIndex);
         }
 
-        return rounds[roundIndex].filter(idx => idx < pool.matches.length);
+        return matches.filter(idx => idx < pool.matches.length);
     }
 
     /**
