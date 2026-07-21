@@ -6,10 +6,21 @@ class SetupView {
     constructor(tournament) {
         this.tournament = tournament;
         this.step = 'welcome'; // 'welcome', 'create', 'teams', 'pools', 'format'
-        this.tempTournamentName = '';
-        this.tempTeams = [];
+
+        // Si un tournoi existe en phase setup, restaurer ses données
+        if (tournament && tournament.phase === 'setup') {
+            this.tempTournamentName = tournament.name || '';
+            this.tempTeams = Array.from(tournament.teams.values()).map(t => t.name);
+            this.tempQualifiedCount = tournament.qualifiedCount || 16;
+            // Démarrer directement à l'étape de saisie des équipes
+            this.step = 'teams';
+        } else {
+            this.tempTournamentName = '';
+            this.tempTeams = [];
+            this.tempQualifiedCount = 16;
+        }
+
         this.tempPools = [];
-        this.tempQualifiedCount = 16; // Nombre d'équipes qualifiées pour la phase finale
     }
 
     /**
