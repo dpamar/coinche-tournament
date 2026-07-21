@@ -139,14 +139,16 @@ class App {
         nav.appendChild(homeLink);
 
         if (this.tournament) {
-            if (this.tournament.phase === 'pool' || this.tournament.phase === 'bracket' || this.tournament.phase === 'finished') {
-                const poolLink = document.createElement('a');
-                poolLink.href = '#pool-phase';
-                poolLink.textContent = 'Phase de Poules';
+            // Feuille de matches - disponible en phase pool et bracket
+            if (this.tournament.phase === 'pool' || this.tournament.phase === 'bracket') {
+                const matchSheetLink = document.createElement('a');
+                matchSheetLink.href = '#match-sheet';
+                matchSheetLink.textContent = 'Feuille de Matches';
                 nav.appendChild(document.createTextNode(' | '));
-                nav.appendChild(poolLink);
+                nav.appendChild(matchSheetLink);
             }
 
+            // Tableaux finaux - disponible en phase bracket et finished
             if (this.tournament.phase === 'bracket' || this.tournament.phase === 'finished') {
                 const bracketLink = document.createElement('a');
                 bracketLink.href = '#bracket';
@@ -155,6 +157,7 @@ class App {
                 nav.appendChild(bracketLink);
             }
 
+            // Correction - disponible dès que les poules existent
             if (this.tournament.pools && this.tournament.pools.length > 0) {
                 const correctionLink = document.createElement('a');
                 correctionLink.href = '#correction';
