@@ -936,3 +936,49 @@ h4 {
         flex-direction: row;
     }
 }
+
+/* Fix pour inputs dans les tables (PoolPhaseView) */
+table .score-input {
+    font-size: 1.5rem;
+    padding: 0.75rem;
+    width: 80px;
+    text-align: center;
+    font-weight: 700;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+}
+
+table .score-input:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+.score-edit {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    justify-content: center;
+}
+
+.score-separator {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--text-muted);
+}
+
+.editing-row {
+    background: #eff6ff;
+}
+
+.editing-row td {
+    padding: var(--spacing-md);
+}
+
+/* Responsive pour très petits écrans */
+@media (max-width: 375px) {
+    table .score-input {
+        font-size: 1.25rem;
+        width: 70px;
+        padding: 0.5rem;
+    }
+}

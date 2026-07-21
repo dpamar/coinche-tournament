@@ -327,6 +327,33 @@ class MatchSheetView {
         // Sauvegarder
         this.tournament.save();
 
+        // Vérifier si le round actuel est terminé
+        const pool = this.tournament.pools[poolIndex];
+        const currentRound = this.getCurrentRoundForPool(pool);
+
+        if (currentRound !== null) {
+            const roundMatches = this.getRoundMatches(pool, currentRound);
+            const allRoundPlayed = roundMatches.every(idx => pool.matches[idx].isPlayed);
+
+            if (allRoundPlayed) {
+                const roundNumber = currentRound + 1;
+                if (currentRound < 2) {
+                    alert(`Round ${roundNumber} terminé ! Passage au round suivant.`);
+                } else {
+                    // Dernier round de cette poule
+                    const allPoolsComplete = this.tournament.pools.every(p =>
+                        p.matches.every(m => m.isPlayed)
+                    );
+
+                    if (allPoolsComplete) {
+                        alert('Tous les matches de poules sont terminés ! Vous pouvez passer à la phase finale.');
+                    } else {
+                        alert(`Round ${roundNumber} terminé pour cette poule !`);
+                    }
+                }
+            }
+        }
+
         // Retour à la vue normale
         this.editingMatchId = null;
         this.rerender();
