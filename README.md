@@ -13,6 +13,7 @@ Application web de gestion de tournois de coinche avec phase de poules et phase 
 - **Feuille de matches** : génération d'une feuille imprimable pour annoncer les matches
 - **Export/Import** : sauvegarde et restauration complète du tournoi en JSON
 - **Sauvegarde automatique** : progression enregistrée dans le navigateur
+- **🌙 Thème sombre** : basculez entre mode clair et sombre avec détection automatique des préférences système
 
 ## 🚀 Démarrage rapide
 
@@ -81,7 +82,8 @@ coinche-tournament/
 │   │   ├── Bracket.js
 │   │   └── Tournament.js
 │   ├── managers/
-│   │   └── StorageManager.js
+│   │   ├── StorageManager.js
+│   │   └── ThemeManager.js  # Gestion du thème clair/sombre
 │   ├── components/        # Composants réutilisables
 │   │   ├── Button.js
 │   │   ├── Form.js

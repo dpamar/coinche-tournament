@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test du Thème Sombre</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .test-container {
+            padding: var(--spacing-xl);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: var(--spacing-xl) 0;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+        }
+        .color-swatch {
+            padding: var(--spacing-lg);
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .info-box {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            padding: var(--spacing-md);
+            border-radius: 8px;
+            margin: var(--spacing-md) 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎨 Test du Thème Sombre</h1>
+
+        <div class="info-box">
+            <p><strong>Thème actuel :</strong> <span id="current-theme">Chargement...</span></p>
+            <p><strong>Préférence système :</strong> <span id="system-preference">Chargement...</span></p>
+        </div>
+
+        <div class="test-section">
+            <h2>Palette de couleurs</h2>
+            <div class="test-grid">
+                <div class="color-swatch" style="background: var(--primary); color: white;">
+                    Primary<br>
+                    <small>var(--primary)</small>
+                </div>
+                <div class="color-swatch" style="background: var(--success); color: white;">
+                    Success<br>
+                    <small>var(--success)</small>
+                </div>
+                <div class="color-swatch" style="background: var(--danger); color: white;">
+                    Danger<br>
+                    <small>var(--danger)</small>
+                </div>
+                <div class="color-swatch" style="background: var(--warning); color: white;">
+                    Warning<br>
+                    <small>var(--warning)</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Boutons</h2>
+            <div class="action-buttons">
+                <button class="btn-primary">Bouton Primary</button>
+                <button class="btn-secondary">Bouton Secondary</button>
+                <button class="btn-danger">Bouton Danger</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Messages</h2>
+            <div class="error-message">
+                ❌ Ceci est un message d'erreur
+            </div>
+            <div class="success-message">
+                ✅ Ceci est un message de succès
+            </div>
+            <div class="info-message">
+                ℹ️ Ceci est un message d'information
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Cards</h2>
+            <div class="card">
+                <h3>Card Standard</h3>
+                <p>Ceci est une card avec du texte normal et un fond de surface.</p>
+            </div>
+
+            <div class="match-card">
+                <h3>Match Card</h3>
+                <div class="match-teams">
+                    <div class="team">Équipe A</div>
+                    <div class="vs">VS</div>
+                    <div class="team">Équipe B</div>
+                </div>
+            </div>
+
+            <div class="match-card match-played">
+                <h3>Match Joué</h3>
+                <div class="match-team-result winner">
+                    <span class="team-name">Équipe A (Gagnant)</span>
+                    <span class="team-score">152</span>
+                </div>
+                <div class="match-team-result">
+                    <span class="team-name">Équipe B</span>
+                    <span class="team-score">98</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Formulaires</h2>
+            <div class="form-group">
+                <label for="test-input">Champ de texte</label>
+                <input type="text" id="test-input" placeholder="Entrez du texte">
+            </div>
+            <div class="form-group">
+                <label for="test-select">Sélection</label>
+                <select id="test-select">
+                    <option>Option 1</option>
+                    <option>Option 2</option>
+                    <option>Option 3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="test-number">Nombre</label>
+                <input type="number" id="test-number" value="0">
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Tableau</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rang</th>
+                        <th>Équipe</th>
+                        <th>V</th>
+                        <th>GA</th>
+                        <th>Pts</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="rank">1</td>
+                        <td class="team-name">Les Champions</td>
+                        <td>3</td>
+                        <td class="goal-average positive">+125</td>
+                        <td>450</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">2</td>
+                        <td class="team-name">Les Pros</td>
+                        <td>2</td>
+                        <td class="goal-average positive">+50</td>
+                        <td>420</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">3</td>
+                        <td class="team-name">Les Amateurs</td>
+                        <td>1</td>
+                        <td class="goal-average negative">-75</td>
+                        <td>380</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="test-section">
+            <h2>Contrôles du thème</h2>
+            <div class="action-buttons">
+                <button onclick="testLight()">☀️ Forcer Thème Clair</button>
+                <button onclick="testDark()">🌙 Forcer Thème Sombre</button>
+                <button onclick="testAuto()">⚙️ Mode Automatique</button>
+                <button onclick="testToggle()">🔄 Basculer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/managers/ThemeManager.js"></script>
+    <script>
+        // Initialisation
+        const themeManager = new ThemeManager();
+
+        // Affichage des infos
+        function updateInfo() {
+            document.getElementById('current-theme').textContent =
+                document.documentElement.getAttribute('data-theme') || 'auto';
+
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.getElementById('system-preference').textContent =
+                systemPrefersDark ? 'Sombre' : 'Clair';
+        }
+
+        // Fonctions de test
+        function testLight() {
+            themeManager.setTheme('light');
+            updateInfo();
+        }
+
+        function testDark() {
+            themeManager.setTheme('dark');
+            updateInfo();
+        }
+
+        function testAuto() {
+            themeManager.setTheme('auto');
+            updateInfo();
+        }
+
+        function testToggle() {
+            themeManager.toggleTheme();
+            updateInfo();
+        }
+
+        // Mise à jour initiale
+        updateInfo();
+
+        // Écoute les changements système
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateInfo);
+    </script>
+</body>
+</html>

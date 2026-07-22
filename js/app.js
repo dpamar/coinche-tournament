@@ -2,10 +2,14 @@
 class App {
     constructor() {
         this.tournament = null;
+        this.themeManager = null;
         this.init();
     }
 
     init() {
+        // Initialize theme manager
+        this.themeManager = new ThemeManager();
+
         // Load tournament from storage if exists
         const savedTournament = StorageManager.loadTournament();
         if (savedTournament) {

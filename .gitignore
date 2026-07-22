@@ -16,5 +16,7 @@ Thumbs.db
 # Logs
 *.log
 
+.agents/
+
 # Temporary files
 *.tmp

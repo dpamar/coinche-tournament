@@ -12,9 +12,10 @@
 }
 
 :root {
-    /* Couleurs */
+    /* Couleurs - Thème clair */
     --primary: #3b82f6;
     --primary-dark: #2563eb;
+    --primary-light: #60a5fa;
     --secondary: #64748b;
     --danger: #ef4444;
     --success: #10b981;
@@ -45,9 +46,58 @@
     --safe-right: env(safe-area-inset-right);
 }
 
+/* Thème sombre */
+[data-theme="dark"] {
+    --primary: #60a5fa;
+    --primary-dark: #3b82f6;
+    --primary-light: #93c5fd;
+    --secondary: #94a3b8;
+    --danger: #f87171;
+    --success: #34d399;
+    --warning: #fbbf24;
+
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --text: #f1f5f9;
+    --text-light: #cbd5e1;
+    --text-muted: #94a3b8;
+
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Thème sombre automatique basé sur les préférences système */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --primary: #60a5fa;
+        --primary-dark: #3b82f6;
+        --primary-light: #93c5fd;
+        --secondary: #94a3b8;
+        --danger: #f87171;
+        --success: #34d399;
+        --warning: #fbbf24;
+
+        --bg: #0f172a;
+        --surface: #1e293b;
+        --border: #334155;
+        --text: #f1f5f9;
+        --text-light: #cbd5e1;
+        --text-muted: #94a3b8;
+
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        --shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.4);
+    }
+}
+
 html {
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
+    color-scheme: light;
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
 }
 
 body {
@@ -325,6 +375,10 @@ tr:active {
 .match-card.match-played {
     border-color: var(--success);
     background: #d1fae5;
+}
+
+[data-theme="dark"] .match-card.match-played {
+    background: #064e3b;
 }
 
 .match-card-inter-pool {
@@ -683,6 +737,10 @@ tr:active {
     background: #eff6ff;
 }
 
+[data-theme="dark"] .format-option.selected {
+    background: #1e3a8a;
+}
+
 .format-option label {
     display: block;
     font-weight: 600;
@@ -786,28 +844,43 @@ tr:active {
 /* Messages */
 .error-message {
     background: #fee2e2;
-    color: var(--danger);
+    color: #991b1b;
     padding: var(--spacing-md);
     border-radius: 8px;
     margin: var(--spacing-md) 0;
     font-weight: 500;
+}
+
+[data-theme="dark"] .error-message {
+    background: #7f1d1d;
+    color: #fecaca;
 }
 
 .success-message {
     background: #d1fae5;
-    color: var(--success);
+    color: #065f46;
     padding: var(--spacing-md);
     border-radius: 8px;
     margin: var(--spacing-md) 0;
     font-weight: 500;
 }
 
+[data-theme="dark"] .success-message {
+    background: #064e3b;
+    color: #a7f3d0;
+}
+
 .info-message {
     background: #dbeafe;
-    color: var(--primary);
+    color: #1e40af;
     padding: var(--spacing-md);
     border-radius: 8px;
     margin: var(--spacing-md) 0;
+}
+
+[data-theme="dark"] .info-message {
+    background: #1e3a8a;
+    color: #bfdbfe;
 }
 
 .no-matches,
@@ -1016,6 +1089,10 @@ table .score-input:focus {
     background: #eff6ff;
 }
 
+[data-theme="dark"] .editing-row {
+    background: #1e3a8a;
+}
+
 .editing-row td {
     padding: var(--spacing-md);
 }
@@ -1027,4 +1104,53 @@ table .score-input:focus {
         width: 70px;
         padding: 0.5rem;
     }
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    position: fixed;
+    bottom: calc(var(--spacing-md) + var(--safe-bottom));
+    right: calc(var(--spacing-md) + var(--safe-right));
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    padding: 0;
+    min-height: unset;
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+.theme-toggle-icon {
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover .theme-toggle-icon {
+    transform: rotate(20deg);
+}
+
+/* Animation de transition entre thèmes */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.card,
+.match-card,
+.stat-card,
+.format-option,
+button,
+input,
+select {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
