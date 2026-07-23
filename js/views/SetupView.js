@@ -1,11 +1,11 @@
 /**
  * SetupView - Vue de création et configuration de tournoi
- * Gère les 4 étapes : accueil, création, saisie des équipes, organisation en poules
+ * Gère le flux en 6 étapes : welcome → create → teams → pool-count → format → pools
  */
 class SetupView {
     constructor(tournament) {
         this.tournament = tournament;
-        this.step = 'welcome'; // 'welcome', 'create', 'teams', 'pools', 'format'
+        this.step = 'welcome'; // 'welcome', 'create', 'teams', 'pool-count', 'format', 'pools'
 
         // Si un tournoi existe en phase setup, restaurer ses données
         if (tournament && tournament.phase === 'setup') {
@@ -168,7 +168,8 @@ class SetupView {
     }
 
     /**
-     * Choix du format de phase finale (après avoir choisi le nombre de poules)
+     * Choix du format de phase finale (nombre d'équipes qualifiées)
+     * Étape 4 du flux : après le choix du nombre de poules, avant l'organisation
      * @returns {string} HTML du choix du format
      */
     renderFormat() {
@@ -287,7 +288,8 @@ class SetupView {
     }
 
     /**
-     * Choix du nombre de poules (AVANT le format)
+     * Choix du nombre de poules
+     * Étape 3 du flux : après la saisie des équipes, avant le choix du format
      * @returns {string} HTML du choix du nombre de poules
      */
     renderPoolCount() {
@@ -351,7 +353,8 @@ class SetupView {
     }
 
     /**
-     * Organisation en poules
+     * Organisation en poules (affichage et mélange)
+     * Étape finale du flux : affiche la répartition calculée, permet de mélanger et de démarrer
      * @returns {string} HTML de l'organisation en poules
      */
     renderPools() {
@@ -442,6 +445,7 @@ class SetupView {
     }
 
     // ==================== Navigation entre les étapes ====================
+    // Flux : welcome → create → teams → pool-count → format → pools → start
 
     startCreate() {
         this.step = 'create';
@@ -463,8 +467,11 @@ class SetupView {
         this.refreshView();
     }
 
+    /**
+     * Navigation vers l'étape de choix du format
+     * Valide qu'un nombre de poules a été choisi
+     */
     goToFormat() {
-        // Vérifier qu'un nombre de poules a été choisi
         if (this.tempPoolCount === null) {
             alert('Veuillez choisir un nombre de poules');
             return;
@@ -474,13 +481,20 @@ class SetupView {
         this.refreshView();
     }
 
+    /**
+     * Sélectionne un format de qualification (nombre d'équipes qualifiées)
+     * @param {number} count - Nombre d'équipes qualifiées (4, 8, 16 ou 32)
+     */
     selectFormat(count) {
         this.tempQualifiedCount = count;
         this.refreshView();
     }
 
+    /**
+     * Navigation vers l'étape de choix du nombre de poules
+     * Valide que le nombre d'équipes est pair
+     */
     goToPoolCount() {
-        // Validation : le nombre d'équipes doit être pair
         if (this.tempTeams.length % 2 !== 0) {
             alert('Le nombre d\'équipes doit être pair');
             return;
@@ -490,13 +504,20 @@ class SetupView {
         this.refreshView();
     }
 
+    /**
+     * Sélectionne un nombre de poules
+     * @param {number} count - Nombre de poules
+     */
     selectPoolCount(count) {
         this.tempPoolCount = count;
         this.refreshView();
     }
 
+    /**
+     * Navigation vers l'étape d'organisation des poules
+     * Valide qu'un format a été choisi et génère la répartition
+     */
     goToPools() {
-        // Vérifier qu'un format a été choisi
         if (this.tempQualifiedCount === null) {
             alert('Veuillez choisir un format de qualification');
             return;
@@ -504,7 +525,7 @@ class SetupView {
 
         this.step = 'pools';
 
-        // Générer les poules
+        // Générer les poules selon le nombre choisi
         const poolSizes = this.calculatePoolSizes(this.tempTeams.length);
         this.tempPools = this.distributeIntoPoolsl(this.tempTeams, poolSizes);
 
@@ -513,6 +534,11 @@ class SetupView {
 
     // ==================== Gestion de la création ====================
 
+    /**
+     * Gère la soumission du formulaire de création de tournoi
+     * Crée et sauvegarde le tournoi, puis passe à l'étape de saisie des équipes
+     * @param {Event} event - Événement de soumission du formulaire
+     */
     handleCreateSubmit(event) {
         event.preventDefault();
 
@@ -537,6 +563,11 @@ class SetupView {
 
     // ==================== Gestion des équipes ====================
 
+    /**
+     * Gère l'ajout d'une équipe au tournoi
+     * Valide les doublons et sauvegarde le tournoi
+     * @param {Event} event - Événement de soumission du formulaire
+     */
     handleAddTeam(event) {
         event.preventDefault();
 
@@ -572,6 +603,11 @@ class SetupView {
         }, 0);
     }
 
+    /**
+     * Supprime une équipe du tournoi
+     * Recrée le tournoi depuis zéro avec les équipes restantes
+     * @param {number} index - Index de l'équipe à supprimer
+     */
     removeTeam(index) {
         if (index >= 0 && index < this.tempTeams.length) {
             this.tempTeams.splice(index, 1);
@@ -591,11 +627,12 @@ class SetupView {
 
     // ==================== Organisation en poules ====================
 
+    /**
+     * OBSOLETE : remplacée par le flux pool-count → format → pools
+     * Conservée pour rétrocompatibilité mais non utilisée dans le flux actuel
+     */
     organizePools() {
-        // Calculer la répartition optimale des poules
         const poolSizes = this.calculatePoolSizes(this.tempTeams.length);
-
-        // Distribuer les équipes dans les poules
         this.tempPools = this.distributeIntoPoolsl(this.tempTeams, poolSizes);
 
         this.step = 'pools';
@@ -676,23 +713,20 @@ class SetupView {
 
     /**
      * Calcule les tailles optimales des poules
-     * Objectif : des poules de 4 ou 5 équipes
-     * Si pas divisible par 4, créer des poules de 5 (minimum 2 poules de 5)
+     * Utilise tempPoolCount si défini, sinon calcule automatiquement (mode legacy)
      * @param {number} teamCount - Nombre d'équipes
-     * @returns {Array<number>} Tailles des poules (ex: [4, 4, 5, 5])
+     * @returns {Array<number>} Tailles des poules (ex: [5, 5, 4, 4])
      */
     calculatePoolSizes(teamCount) {
-        // Si un nombre de poules a été choisi, l'utiliser
+        // Si un nombre de poules a été choisi (flux normal), l'utiliser
         if (this.tempPoolCount !== null) {
             return this.calculatePoolSizesForCount(teamCount, this.tempPoolCount);
         }
+
+        // Mode legacy : calcul automatique basé sur tempQualifiedCount
+        // Non utilisé dans le flux actuel mais conservé pour rétrocompatibilité
         const poolSizes = [];
 
-        // Contrainte : nombre minimum de poules selon le nombre d'équipes qualifiées
-        // Pour 4 qualifiés : min 2 poules (2×1er + 2×2ème = 4)
-        // Pour 8 qualifiés : min 3 poules (3×1er + 3×2ème + 2×3ème = 8)
-        // Pour 16 qualifiés : min 6 poules (6×1er + 6×2ème + 4×3ème = 16)
-        // Pour 32 qualifiés : min 11 poules (11×1er + 11×2ème + 10×3ème = 32)
         let minPools;
         if (this.tempQualifiedCount <= 4) {
             minPools = 2;
@@ -704,33 +738,26 @@ class SetupView {
             minPools = 11;
         }
 
-        // Cas spéciaux
         if (teamCount % 4 === 0) {
-            // Divisible par 4 : toutes les poules de 4
             const poolCount = teamCount / 4;
             for (let i = 0; i < poolCount; i++) {
                 poolSizes.push(4);
             }
         } else {
-            // Créer des poules de 5 pour absorber le reste (toujours un nombre pair)
             let fiveTeamPools = 0;
             let remaining = teamCount;
 
             if (teamCount % 4 === 1) {
-                // 17, 21, 25, 29... → 2 poules de 5
                 fiveTeamPools = 2;
                 remaining -= 10;
             } else if (teamCount % 4 === 2) {
-                // 18, 22, 26, 30... → 2 poules de 5
                 fiveTeamPools = 2;
                 remaining -= 10;
             } else if (teamCount % 4 === 3) {
-                // 19, 23, 27, 31... → 4 poules de 5 (pas 3 car doit être pair!)
                 fiveTeamPools = 4;
                 remaining -= 20;
             }
 
-            // Le reste en poules de 4
             const fourTeamPools = remaining / 4;
 
             for (let i = 0; i < fiveTeamPools; i++) {
@@ -740,10 +767,9 @@ class SetupView {
                 poolSizes.push(4);
             }
 
-            // Vérification : assez de poules pour le nombre d'équipes qualifiées choisi ?
             const totalPools = fourTeamPools + fiveTeamPools;
             if (totalPools < minPools) {
-                throw new Error(`Avec ${teamCount} équipes, il faut au moins ${minPools} poules pour qualifier ${this.tempQualifiedCount} équipes. Choisissez un format avec moins de qualifiés ou ajoutez des équipes.`);
+                throw new Error(`Avec ${teamCount} équipes, il faut au moins ${minPools} poules pour qualifier ${this.tempQualifiedCount} équipes.`);
             }
         }
 
@@ -753,7 +779,8 @@ class SetupView {
     /**
      * Distribue les équipes dans les poules selon les tailles données
      * @param {Array<string>} teams - Liste des noms d'équipes
-     * @param {Array<number>} poolSizes - Tailles des poules
+     * @param {Array<number>} poolSizes - Tailles des poules (ex: [5, 5, 4, 4])
+     * @param {boolean} shouldShuffle - Si true, mélange les équipes avant distribution
      * @returns {Array<Array<string>>} Poules avec équipes réparties
      */
     distributeIntoPoolsl(teams, poolSizes, shouldShuffle = false) {
@@ -787,6 +814,10 @@ class SetupView {
         }
     }
 
+    /**
+     * Mélange les équipes entre les poules en conservant les tailles
+     * Redistribue toutes les équipes aléatoirement
+     */
     shufflePools() {
         if (this.tempPools.length === 0) {
             return;
@@ -806,6 +837,10 @@ class SetupView {
 
     // ==================== Finalisation ====================
 
+    /**
+     * Finalise la configuration et démarre le tournoi
+     * Crée le tournoi avec toutes les équipes et poules, puis redirige vers la phase de poules
+     */
     startTournament() {
         if (this.tempPools.length === 0) {
             alert('Aucune poule n\'a été créée');
@@ -862,6 +897,10 @@ class SetupView {
         }
     }
 
+    /**
+     * Reprend un tournoi existant depuis le localStorage
+     * Redirige vers la phase appropriée selon l'état du tournoi
+     */
     resumeTournament() {
         const tournament = Tournament.load();
         if (!tournament) {
@@ -893,6 +932,9 @@ class SetupView {
 
     // ==================== Utilitaires ====================
 
+    /**
+     * Déclenche un nouveau rendu de la vue en conservant l'état local
+     */
     refreshView() {
         if (typeof app !== 'undefined' && app.renderView) {
             app.renderView(this);

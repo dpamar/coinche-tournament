@@ -2,6 +2,11 @@
  * Classe Tournament représentant le tournoi complet
  */
 class Tournament {
+  /**
+   * Crée un nouveau tournoi
+   * @param {string} name - Nom du tournoi
+   * @param {number} [qualifiedCount=16] - Nombre d'équipes qualifiées pour la phase finale (8, 16 ou 32)
+   */
   constructor(name, qualifiedCount = 16) {
     this.name = name;
     this.teams = new Map(); // Map<id, Team>
@@ -118,20 +123,19 @@ class Tournament {
   }
 
   /**
-   * Retourne les 16 meilleures équipes qualifiées pour la phase éliminatoire
+   * Retourne les équipes qualifiées pour la phase éliminatoire
    *
    * Règles de qualification :
    *   1) Tous les 1ers de chaque poule sont qualifiés
    *   2) On complète avec les meilleurs 2èmes (triés selon critères de classement)
    *   3) Si nécessaire, on complète avec les meilleurs 3èmes
-   *   4) Objectif : exactement 16 équipes qualifiées
    *
    * Critères de tri pour départager les 2èmes et 3èmes entre eux :
    *   - Nombre de victoires (décroissant)
    *   - Goal average (décroissant)
    *   - Points marqués (décroissant)
    *
-   * @returns {Array<string>} Array de 16 IDs d'équipes qualifiées, triés par performance globale
+   * @returns {Array<string>} Array d'IDs d'équipes qualifiées (8, 16 ou 32), triés par performance globale
    */
   getQualifiedTeams() {
     if (this.pools.length === 0) {

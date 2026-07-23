@@ -20,14 +20,14 @@ class App {
         document.addEventListener('click', (e) => {
             const button = e.target.closest('[data-action]');
             if (button) {
-                e.preventDefault(); // Empêcher le comportement par défaut
-                e.stopPropagation(); // Empêcher la propagation
+                e.preventDefault();
+                e.stopPropagation();
                 const action = button.getAttribute('data-action');
                 console.log('Action clicked:', action);
                 if (action) {
-                    // Try to evaluate the action as a function call
+                    // Evaluate and execute action as JavaScript code
                     try {
-                        // Use Function constructor to safely evaluate and execute
+                        // WARNING: Uses Function constructor - only use with trusted content
                         const fn = new Function(action);
                         fn.call(window);
                         console.log('Action executed successfully');
@@ -58,7 +58,7 @@ class App {
 
     renderSetup() {
         const view = new SetupView(this.tournament);
-        window.setupView = view; // Expose globally for onclick handlers
+        window.setupView = view; // Expose globally for data-action handlers
         this.renderView(view);
         this.updateNav();
     }
@@ -69,7 +69,7 @@ class App {
             return;
         }
         const view = new PoolPhaseView(this.tournament);
-        window.poolPhaseView = view; // Expose globally for onclick handlers
+        window.poolPhaseView = view; // Expose globally for data-action handlers
         this.renderView(view);
         this.updateNav();
     }
@@ -80,7 +80,7 @@ class App {
             return;
         }
         const view = new BracketView(this.tournament);
-        window.bracketView = view; // Expose globally for onclick handlers
+        window.bracketView = view; // Expose globally for data-action handlers
         this.renderView(view);
         this.updateNav();
     }
@@ -91,7 +91,7 @@ class App {
             return;
         }
         const view = new CorrectionView(this.tournament);
-        window.correctionView = view; // Expose globally for onclick handlers
+        window.correctionView = view; // Expose globally for data-action handlers
         this.renderView(view);
         this.updateNav();
     }
@@ -102,7 +102,7 @@ class App {
             return;
         }
         const view = new MatchSheetView(this.tournament);
-        window.matchSheetView = view; // Expose globally for onclick handlers
+        window.matchSheetView = view; // Expose globally for data-action handlers
         this.renderView(view);
         this.updateNav();
     }
@@ -110,7 +110,7 @@ class App {
     renderView(view) {
         const mainContent = document.getElementById('main-content');
 
-        // Security: Clear existing content first
+        // Clear existing content
         while (mainContent.firstChild) {
             mainContent.removeChild(mainContent.firstChild);
         }

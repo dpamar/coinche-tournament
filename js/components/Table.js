@@ -64,7 +64,7 @@ function createTable(headers, rows, className = '') {
  * Create a ranking table for teams
  * Columns: Rang, Équipe, V (Victoires), D (Défaites), PM (Points Marqués),
  *          PE (Points Encaissés), GA (Goal Average)
- * @param {Array<Object>} teams - Array of team objects with ranking data
+ * @param {Array<Object>} teams - Array of team objects with properties: name, wins, losses, pointsFor, pointsAgainst
  * @returns {string} HTML string for ranking table
  */
 function createRankingTable(teams) {

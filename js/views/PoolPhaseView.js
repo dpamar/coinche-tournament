@@ -1,6 +1,6 @@
 /**
- * PoolPhaseView - Vue de la phase de poules
- * Permet de gérer les matches de poule et saisir les scores
+ * PoolPhaseView - Pool phase management view
+ * Manages pool matches, score entry, and displays rankings
  */
 class PoolPhaseView {
     constructor(tournament) {
@@ -56,6 +56,10 @@ class PoolPhaseView {
         `;
     }
 
+    /**
+     * Calculates pool phase statistics
+     * @returns {Object} Stats with matchesPlayed, totalMatches, progress
+     */
     getPoolPhaseStats() {
         let matchesPlayed = 0;
         let totalMatches = 0;
@@ -74,6 +78,10 @@ class PoolPhaseView {
         };
     }
 
+    /**
+     * Renders navigation tabs for switching between pools
+     * @returns {string} HTML for pool tabs
+     */
     renderPoolTabs() {
         const tabs = this.tournament.pools.map((pool, index) => {
             const poolName = `Poule ${String.fromCharCode(65 + index)}`;
@@ -96,6 +104,10 @@ class PoolPhaseView {
         `;
     }
 
+    /**
+     * Renders the currently selected pool with ranking and matches
+     * @returns {string} HTML for current pool
+     */
     renderCurrentPool() {
         const pool = this.tournament.pools[this.currentPoolIndex];
         if (!pool) {
@@ -122,6 +134,11 @@ class PoolPhaseView {
         `;
     }
 
+    /**
+     * Renders ranking table for a pool
+     * @param {Array} ranking - Array of team stats sorted by rank
+     * @returns {string} HTML table
+     */
     renderRankingTable(ranking) {
         if (!ranking || ranking.length === 0) {
             return '<p class="no-data">Aucune équipe dans cette poule</p>';
@@ -165,6 +182,12 @@ class PoolPhaseView {
         `;
     }
 
+    /**
+     * Renders matches table for a pool
+     * @param {Array} matches - Array of matches
+     * @param {number} poolIndex - Index of the pool
+     * @returns {string} HTML table
+     */
     renderMatchesTable(matches, poolIndex) {
         if (!matches || matches.length === 0) {
             return '<p class="no-data">Aucun match dans cette poule</p>';
@@ -204,6 +227,10 @@ class PoolPhaseView {
         `;
     }
 
+    /**
+     * Renders a normal match row (not in editing mode)
+     * @returns {string} HTML table row
+     */
     renderNormalMatchRow(matchId, team1Name, team2Name, match, matchIndex, poolIndex) {
         let scoreDisplay;
         let statusClass;
@@ -233,6 +260,10 @@ class PoolPhaseView {
         `;
     }
 
+    /**
+     * Renders a match row in editing mode with score inputs
+     * @returns {string} HTML table row with inputs
+     */
     renderEditingMatchRow(matchId, team1Name, team2Name, match, matchIndex, poolIndex) {
         const score1Value = match.score1 !== null ? match.score1 : '';
         const score2Value = match.score2 !== null ? match.score2 : '';
@@ -265,6 +296,10 @@ class PoolPhaseView {
         `;
     }
 
+    /**
+     * Renders qualification section when all pool matches are played
+     * @returns {string} HTML section with bracket phase button
+     */
     renderQualificationSection() {
         return `
             <div class="qualification-section">
@@ -306,6 +341,10 @@ class PoolPhaseView {
         }
     }
 
+    /**
+     * Switches to a different pool tab
+     * @param {number} poolIndex - Index of the pool to display
+     */
     switchPool(poolIndex) {
         if (poolIndex >= 0 && poolIndex < this.tournament.pools.length) {
             this.currentPoolIndex = poolIndex;
@@ -314,16 +353,29 @@ class PoolPhaseView {
         }
     }
 
+    /**
+     * Activates editing mode for a match
+     * @param {string} matchId - Unique match identifier
+     */
     editPoolMatch(matchId) {
         this.editingMatchId = matchId;
         this.rerenderView();
     }
 
+    /**
+     * Cancels score editing mode
+     */
     cancelEdit() {
         this.editingMatchId = null;
         this.rerenderView();
     }
 
+    /**
+     * Saves pool match score with validation and stats update
+     * @param {string} matchId - Match identifier
+     * @param {number} matchIndex - Match index in pool
+     * @param {number} poolIndex - Pool index
+     */
     savePoolMatch(matchId, matchIndex, poolIndex) {
         const score1Input = document.getElementById(`score1-${matchId}`);
         const score2Input = document.getElementById(`score2-${matchId}`);
@@ -379,6 +431,10 @@ class PoolPhaseView {
         this.rerenderView();
     }
 
+    /**
+     * Resets team stats for a match (used before re-scoring)
+     * @param {Match} match - Match object
+     */
     resetMatchStats(match) {
         const team1 = this.tournament.teams.get(match.team1Id);
         const team2 = this.tournament.teams.get(match.team2Id);
@@ -402,6 +458,10 @@ class PoolPhaseView {
         }
     }
 
+    /**
+     * Updates team stats based on match score
+     * @param {Match} match - Match object
+     */
     updateMatchStats(match) {
         if (!match.isPlayed) {
             return;
@@ -429,6 +489,9 @@ class PoolPhaseView {
         }
     }
 
+    /**
+     * Initiates bracket phase by qualifying teams and creating bracket
+     */
     startBracketPhaseAction() {
         try {
             // Get qualified teams
@@ -463,6 +526,10 @@ class PoolPhaseView {
         }
     }
 
+    /**
+     * Displays a temporary success notification
+     * @param {string} message - Message to display
+     */
     showSuccessMessage(message) {
         // Simple success notification
         const notification = document.createElement('div');
@@ -476,6 +543,9 @@ class PoolPhaseView {
         }, 3000);
     }
 
+    /**
+     * Re-renders the view while preserving state
+     */
     rerenderView() {
         const mainContent = document.getElementById('main-content');
         if (mainContent) {

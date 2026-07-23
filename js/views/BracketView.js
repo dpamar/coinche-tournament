@@ -1,4 +1,7 @@
-// Bracket view - Knockout phase management and visualization
+/**
+ * BracketView - Knockout phase management and visualization
+ * Displays bracket rounds, handles score entry, shows champion when finished
+ */
 class BracketView {
     constructor(tournament) {
         this.tournament = tournament;
@@ -54,7 +57,11 @@ class BracketView {
     }
 
     /**
-     * Affiche les informations de progression
+     * Renders bracket phase progress information
+     * @param {number} currentRoundIndex - Index of current round
+     * @param {number} playedMatches - Number of matches played
+     * @param {number} totalMatches - Total number of matches
+     * @returns {string} HTML for progress section
      */
     renderProgressInfo(currentRoundIndex, playedMatches, totalMatches) {
         const roundName = currentRoundIndex < this.tournament.bracket.rounds.length
@@ -74,7 +81,11 @@ class BracketView {
     }
 
     /**
-     * Affiche un round du bracket
+     * Renders a bracket round with its matches
+     * @param {number} roundIndex - Index of the round
+     * @param {Array} round - Array of matches in the round
+     * @param {number} currentRoundIndex - Index of current round
+     * @returns {string} HTML for the round
      */
     renderRound(roundIndex, round, currentRoundIndex) {
         const roundName = this.tournament.bracket.getRoundName(roundIndex);
@@ -103,7 +114,12 @@ class BracketView {
     }
 
     /**
-     * Affiche un match
+     * Renders a bracket match with teams and scores
+     * @param {Match} match - Match object
+     * @param {number} roundIndex - Round index
+     * @param {number} matchIndex - Match index in round
+     * @param {boolean} isCompleted - Whether the round is completed
+     * @returns {string} HTML for the match
      */
     renderMatch(match, roundIndex, matchIndex, isCompleted) {
         const team1 = this.tournament.teams.get(match.team1Id);
@@ -164,7 +180,12 @@ class BracketView {
     }
 
     /**
-     * Affiche le formulaire de saisie de score
+     * Renders score input form for a match
+     * @param {string} matchId - Match identifier
+     * @param {number} roundIndex - Round index
+     * @param {number} matchIndex - Match index
+     * @param {Match} match - Match object
+     * @returns {string} HTML for score form
      */
     renderScoreForm(matchId, roundIndex, matchIndex, match) {
         const team1 = this.tournament.teams.get(match.team1Id);
@@ -202,7 +223,9 @@ class BracketView {
     }
 
     /**
-     * Affiche la section champion
+     * Renders champion section with podium and tournament history
+     * @param {string} championId - ID of the champion team
+     * @returns {string} HTML for champion section
      */
     renderChampionSection(championId) {
         const champion = this.tournament.teams.get(championId);
@@ -271,7 +294,8 @@ class BracketView {
     }
 
     /**
-     * Retourne l'index du round actuel (premier round non terminé)
+     * Returns index of current round (first round with unplayed matches)
+     * @returns {number} Current round index
      */
     getCurrentRoundIndex() {
         const bracket = this.tournament.bracket;
@@ -289,7 +313,8 @@ class BracketView {
     }
 
     /**
-     * Retourne le nombre total de matches dans le bracket
+     * Returns total number of matches in the bracket
+     * @returns {number} Total match count
      */
     getTotalMatches() {
         const bracket = this.tournament.bracket;
@@ -301,7 +326,8 @@ class BracketView {
     }
 
     /**
-     * Retourne le nombre de matches joués
+     * Returns number of played matches
+     * @returns {number} Played match count
      */
     getPlayedMatches() {
         const bracket = this.tournament.bracket;
@@ -319,7 +345,8 @@ class BracketView {
     }
 
     /**
-     * Active le mode édition pour un match
+     * Activates editing mode for a match
+     * @param {string} matchId - Match identifier
      */
     editMatch(matchId) {
         this.editingMatchId = matchId;
@@ -327,7 +354,7 @@ class BracketView {
     }
 
     /**
-     * Annule l'édition en cours
+     * Cancels current score editing
      */
     cancelEdit() {
         this.editingMatchId = null;
@@ -335,7 +362,10 @@ class BracketView {
     }
 
     /**
-     * Sauvegarde le score d'un match
+     * Saves match score with validation and advances winners if round complete
+     * @param {string} matchId - Match identifier
+     * @param {number} roundIndex - Round index
+     * @param {number} matchIndex - Match index
      */
     saveScore(matchId, roundIndex, matchIndex) {
         const score1Input = document.getElementById(`score1-${matchId}`);
@@ -400,7 +430,7 @@ class BracketView {
     }
 
     /**
-     * Re-render la vue sans perdre l'état
+     * Re-renders the view while preserving state
      */
     rerender() {
         // Ne pas utiliser app.renderBracket() car ça crée une nouvelle instance

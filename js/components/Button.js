@@ -17,17 +17,16 @@ function escapeHtml(str) {
 
 /**
  * Create a button with custom class
- * Supports both onclick and data-action approaches
+ * Uses data-action attribute for event delegation
  * @param {string} text - Button text
- * @param {string} action - Action (can be function call for onclick or identifier for data-action)
+ * @param {string} action - Action identifier or function call for data-action
  * @param {string} className - Additional CSS classes
  * @returns {string} HTML string for button
  */
 function createButton(text, action = '', className = '') {
     const escapedText = escapeHtml(text);
 
-    // If action looks like a function call (contains parentheses), use data-action
-    // Otherwise, also use data-action for consistency
+    // All actions use data-action for centralized event handling
     const actionAttr = action ? ` data-action="${escapeHtml(action)}"` : '';
     const classAttr = className ? ` class="${escapeHtml(className)}"` : '';
 

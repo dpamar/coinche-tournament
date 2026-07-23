@@ -27,7 +27,7 @@ const StorageManager = {
       console.log('Tournament saved successfully at', new Date(timestamp).toISOString());
       return true;
     } catch (error) {
-      // Gestion d'erreur silencieuse
+      // Gestion des erreurs de sauvegarde
       if (error.name === 'QuotaExceededError') {
         console.error('Storage quota exceeded. Unable to save tournament:', error);
       } else {
@@ -57,7 +57,7 @@ const StorageManager = {
       console.log('Tournament loaded successfully');
       return tournament;
     } catch (error) {
-      // Gestion d'erreur silencieuse
+      // Gestion des erreurs de chargement
       console.error('Error loading tournament from localStorage:', error);
       return null;
     }
@@ -76,7 +76,7 @@ const StorageManager = {
       console.log('Tournament deleted successfully');
       return true;
     } catch (error) {
-      // Gestion d'erreur silencieuse
+      // Gestion des erreurs de suppression
       console.error('Error deleting tournament from localStorage:', error);
       return false;
     }
@@ -96,7 +96,7 @@ const StorageManager = {
 
       return parseInt(timestamp, 10);
     } catch (error) {
-      // Gestion d'erreur silencieuse
+      // Gestion des erreurs de lecture du timestamp
       console.error('Error getting last modified timestamp:', error);
       return null;
     }
@@ -111,7 +111,7 @@ const StorageManager = {
       const tournamentJSON = localStorage.getItem(this.STORAGE_KEY);
       return tournamentJSON !== null && tournamentJSON !== undefined;
     } catch (error) {
-      // Gestion d'erreur silencieuse
+      // Gestion des erreurs de vérification
       console.error('Error checking for active tournament:', error);
       return false;
     }

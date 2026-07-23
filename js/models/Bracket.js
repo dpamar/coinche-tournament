@@ -2,6 +2,10 @@
  * Classe Bracket représentant le tableau éliminatoire (4, 8, 16 ou 32 équipes)
  */
 class Bracket {
+  /**
+   * Crée un nouveau bracket
+   * @param {Array<string>} teams - Array d'IDs d'équipes (4, 8, 16 ou 32)
+   */
   constructor(teams) {
     this.teams = teams; // Array d'IDs d'équipes (4, 8, 16, ou 32)
     this.rounds = []; // Array de rounds, chaque round contient des matches
@@ -46,7 +50,7 @@ class Bracket {
 
   /**
    * Fait passer les gagnants d'un round au round suivant
-   * @param {number} roundIndex - Index du round (0 = 1/8, 1 = 1/4, 2 = 1/2, 3 = finale)
+   * @param {number} roundIndex - Index du round courant
    * @returns {boolean} True si le round suivant a été créé, false sinon
    */
   advanceWinners(roundIndex) {

@@ -2,6 +2,11 @@
  * Classe Pool représentant une poule de 4 ou 5 équipes
  */
 class Pool {
+  /**
+   * Crée une nouvelle poule
+   * @param {string} id - Identifiant unique de la poule
+   * @param {Array<string>} teams - Array d'IDs d'équipes
+   */
   constructor(id, teams) {
     this.id = id;
     this.teams = teams; // Array d'objets Team ou d'IDs

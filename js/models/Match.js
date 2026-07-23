@@ -2,6 +2,12 @@
  * Classe Match représentant un match entre deux équipes
  */
 class Match {
+  /**
+   * Crée un nouveau match
+   * @param {string|object} team1 - ID de l'équipe 1 ou objet Team
+   * @param {string|object} team2 - ID de l'équipe 2 ou objet Team
+   * @param {string} type - Type de match ('pool' ou 'knockout')
+   */
   constructor(team1, team2, type) {
     this.team1Id = typeof team1 === 'object' ? team1.id : team1;
     this.team2Id = typeof team2 === 'object' ? team2.id : team2;

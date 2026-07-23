@@ -1,4 +1,7 @@
-// Home view - Landing page for the tournament application
+/**
+ * HomeView - Landing page with welcome screen or tournament dashboard
+ * Displays welcome screen if no tournament, or dashboard with stats if tournament active
+ */
 class HomeView {
     constructor(tournament) {
         this.tournament = tournament;
@@ -97,6 +100,10 @@ class HomeView {
         `;
     }
 
+    /**
+     * Calculates tournament statistics for the dashboard
+     * @returns {Object} Stats with totalTeams, matchesPlayed, totalMatches, progress
+     */
     getTournamentStats() {
         const totalTeams = this.tournament.teams.size;
         let matchesPlayed = 0;
@@ -128,6 +135,11 @@ class HomeView {
         };
     }
 
+    /**
+     * Converts phase code to display label
+     * @param {string} phase - Phase code (setup, pool, bracket, finished)
+     * @returns {string} French display label
+     */
     getPhaseLabel(phase) {
         const labels = {
             'setup': 'Configuration',
@@ -138,6 +150,10 @@ class HomeView {
         return labels[phase] || phase;
     }
 
+    /**
+     * Returns the appropriate action button based on current tournament phase
+     * @returns {string} HTML button for next action
+     */
     getNextActionButton() {
         switch (this.tournament.phase) {
             case 'setup':
@@ -159,7 +175,9 @@ class HomeView {
     }
 }
 
-// Global function for delete confirmation
+/**
+ * Global function for delete confirmation with prompt
+ */
 function confirmDeleteTournament() {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce tournoi ? Cette action est irréversible.')) {
         app.deleteTournament();
@@ -167,7 +185,9 @@ function confirmDeleteTournament() {
     }
 }
 
-// Global function for exporting tournament
+/**
+ * Global function for exporting tournament to JSON file
+ */
 function exportTournament() {
     if (!app.tournament) {
         alert('Aucun tournoi à exporter');
@@ -188,7 +208,9 @@ function exportTournament() {
     }
 }
 
-// Global function for importing tournament
+/**
+ * Global function for importing tournament from JSON file
+ */
 function importTournament() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -224,7 +246,9 @@ function importTournament() {
     input.click();
 }
 
-// Global function for loading sample tournament
+/**
+ * Global function for loading sample tournament from sample.json
+ */
 function loadSampleTournament() {
     // Confirm if there's already a tournament
     if (app.tournament) {

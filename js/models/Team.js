@@ -2,6 +2,11 @@
  * Classe Team représentant une équipe dans le tournoi de coinche
  */
 class Team {
+  /**
+   * Crée une nouvelle équipe
+   * @param {string} name - Nom de l'équipe
+   * @param {string} id - Identifiant unique de l'équipe
+   */
   constructor(name, id) {
     this.id = id;
     this.name = name;

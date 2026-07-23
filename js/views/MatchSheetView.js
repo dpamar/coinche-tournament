@@ -1,6 +1,6 @@
 /**
- * MatchSheetView - Vue pour la feuille de matches avec saisie de scores
- * Affiche les matches à jouer et permet de saisir les scores directement
+ * MatchSheetView - Match sheet view with quick score entry
+ * Displays current round matches and allows direct score input
  */
 class MatchSheetView {
     constructor(tournament) {
@@ -49,7 +49,8 @@ class MatchSheetView {
     }
 
     /**
-     * Rend la feuille pour la phase de poules avec saisie de scores
+     * Renders pool phase sheet with score entry for current round
+     * @returns {string} HTML for pool sheet
      */
     renderPoolSheet() {
         if (!this.tournament.pools || this.tournament.pools.length === 0) {
@@ -98,7 +99,8 @@ class MatchSheetView {
     }
 
     /**
-     * Détermine le round global (minimum parmi toutes les poules)
+     * Determines global current round (minimum across all pools)
+     * @returns {number|null} Round index or null if all matches played
      */
     getGlobalCurrentRound() {
         let minRound = null;
@@ -117,8 +119,10 @@ class MatchSheetView {
     }
 
     /**
-     * Détermine le round actuel pour une poule (0, 1 ou 2)
-     * Les matches inter-poules sont joués en parallèle des rounds internes
+     * Determines current round for a pool (0, 1, or 2)
+     * Inter-pool matches are played in parallel with internal rounds
+     * @param {Pool} pool - Pool object
+     * @returns {number|null} Round index or null if all matches played
      */
     getCurrentRoundForPool(pool) {
         // Chercher le premier round qui a au moins un match non joué
@@ -137,11 +141,14 @@ class MatchSheetView {
     }
 
     /**
-     * Retourne les indices des matches d'un round donné
-     * Inclut les matches internes (2 par round) ET le match inter-poule correspondant (s'il existe)
-     * Round 0: matches 0-1 + match inter-poule index 6
-     * Round 1: matches 2-3 + match inter-poule index 7
-     * Round 2: matches 4-5 + match inter-poule index 8
+     * Returns match indices for a given round
+     * Includes internal matches (2 per round) AND corresponding inter-pool match (if exists)
+     * Round 0: matches 0-1 + inter-pool index 6
+     * Round 1: matches 2-3 + inter-pool index 7
+     * Round 2: matches 4-5 + inter-pool index 8
+     * @param {Pool} pool - Pool object
+     * @param {number} roundIndex - Round index (0-2)
+     * @returns {Array} Array of match indices
      */
     getRoundMatches(pool, roundIndex) {
         const internalMatches = [
@@ -163,7 +170,13 @@ class MatchSheetView {
     }
 
     /**
-     * Rend une carte de match avec saisie de score
+     * Renders a match card with score entry
+     * @param {Match} match - Match object
+     * @param {string} matchId - Match identifier
+     * @param {number} poolIndex - Pool index
+     * @param {number} matchIndex - Match index
+     * @param {boolean} isInterPool - Whether this is an inter-pool match
+     * @returns {string} HTML match card
      */
     renderMatchCard(match, matchId, poolIndex, matchIndex, isInterPool = false) {
         const team1 = this.tournament.teams.get(match.team1Id);
@@ -231,7 +244,8 @@ class MatchSheetView {
     }
 
     /**
-     * Rend la feuille pour la phase éliminatoire
+     * Renders bracket phase sheet with current round matches
+     * @returns {string} HTML for bracket sheet
      */
     renderBracketSheet() {
         const bracket = this.tournament.bracket;
@@ -266,7 +280,12 @@ class MatchSheetView {
     }
 
     /**
-     * Rend une carte de match bracket avec saisie
+     * Renders a bracket match card with score entry
+     * @param {Match} match - Match object
+     * @param {string} matchId - Match identifier
+     * @param {number} roundIndex - Round index
+     * @param {number} matchIndex - Match index
+     * @returns {string} HTML match card
      */
     renderBracketMatchCard(match, matchId, roundIndex, matchIndex) {
         const team1 = this.tournament.teams.get(match.team1Id);
@@ -324,7 +343,8 @@ class MatchSheetView {
     }
 
     /**
-     * Retourne l'index du round actuel du bracket
+     * Returns index of current bracket round
+     * @returns {number|null} Round index or null if all matches played
      */
     getCurrentBracketRound() {
         const bracket = this.tournament.bracket;
@@ -338,7 +358,8 @@ class MatchSheetView {
     }
 
     /**
-     * Active le mode édition pour un match
+     * Activates editing mode for a match
+     * @param {string} matchId - Match identifier
      */
     editMatch(matchId) {
         this.editingMatchId = matchId;
@@ -346,7 +367,7 @@ class MatchSheetView {
     }
 
     /**
-     * Annule l'édition
+     * Cancels score editing
      */
     cancelEdit() {
         this.editingMatchId = null;
@@ -354,7 +375,10 @@ class MatchSheetView {
     }
 
     /**
-     * Sauvegarde le score d'un match de poule
+     * Saves pool match score with validation and checks round completion
+     * @param {string} matchId - Match identifier
+     * @param {number} poolIndex - Pool index
+     * @param {number} matchIndex - Match index
      */
     saveScore(matchId, poolIndex, matchIndex) {
         const score1Input = document.getElementById(`score1-${matchId}`);
@@ -410,7 +434,10 @@ class MatchSheetView {
     }
 
     /**
-     * Sauvegarde le score d'un match de bracket
+     * Saves bracket match score with validation and advances winners
+     * @param {string} matchId - Match identifier
+     * @param {number} roundIndex - Round index
+     * @param {number} matchIndex - Match index
      */
     saveBracketScore(matchId, roundIndex, matchIndex) {
         const score1Input = document.getElementById(`score1-${matchId}`);
@@ -470,7 +497,7 @@ class MatchSheetView {
     }
 
     /**
-     * Re-render la vue
+     * Re-renders the view while preserving state
      */
     rerender() {
         app.renderView(this);
@@ -482,7 +509,9 @@ class MatchSheetView {
     }
 }
 
-// Global function to go back
+/**
+ * Global function to navigate back to appropriate phase view
+ */
 function goBack() {
     if (app.tournament.phase === 'pool') {
         router.navigate('pool-phase');

@@ -1,6 +1,6 @@
 /**
- * CorrectionView - Vue de correction des scores
- * Permet de corriger les scores déjà saisis pour n'importe quel match du tournoi
+ * CorrectionView - Score correction view
+ * Allows correcting already entered scores for any match in the tournament
  */
 class CorrectionView {
     constructor(tournament) {
@@ -41,6 +41,10 @@ class CorrectionView {
         `;
     }
 
+    /**
+     * Renders warning about pool score modifications affecting bracket
+     * @returns {string} HTML warning box
+     */
     renderWarning() {
         return `
             <div class="warning-box">
@@ -51,6 +55,10 @@ class CorrectionView {
         `;
     }
 
+    /**
+     * Renders all pool matches sections
+     * @returns {string} HTML for pool matches
+     */
     renderPoolMatches() {
         if (!this.tournament.pools || this.tournament.pools.length === 0) {
             return '';
@@ -69,6 +77,10 @@ class CorrectionView {
         return poolsHtml;
     }
 
+    /**
+     * Renders all bracket matches sections
+     * @returns {string} HTML for bracket matches
+     */
     renderBracketMatches() {
         if (!this.tournament.bracket) {
             return '';
@@ -87,6 +99,13 @@ class CorrectionView {
         return roundsHtml;
     }
 
+    /**
+     * Renders matches table with editable scores
+     * @param {Array} matches - Array of matches
+     * @param {string} type - 'pool' or 'bracket'
+     * @param {number} index - Pool or round index
+     * @returns {string} HTML table
+     */
     renderMatchesTable(matches, type, index) {
         if (!matches || matches.length === 0) {
             return '<p class="no-matches">Aucun match dans cette section</p>';
@@ -184,16 +203,30 @@ class CorrectionView {
         }
     }
 
+    /**
+     * Activates editing mode for a match
+     * @param {string} matchId - Match identifier
+     */
     editMatch(matchId) {
         this.editingMatchId = matchId;
         this.rerenderView();
     }
 
+    /**
+     * Cancels score editing mode
+     */
     cancelEdit() {
         this.editingMatchId = null;
         this.rerenderView();
     }
 
+    /**
+     * Saves corrected match score with validation and stats recalculation
+     * @param {string} matchId - Match identifier
+     * @param {number} matchIndex - Match index
+     * @param {string} type - 'pool' or 'bracket'
+     * @param {number} sectionIndex - Pool or round index
+     */
     saveMatch(matchId, matchIndex, type, sectionIndex) {
         const score1Input = document.getElementById(`score1-${matchId}`);
         const score2Input = document.getElementById(`score2-${matchId}`);
@@ -275,6 +308,10 @@ class CorrectionView {
         this.rerenderView();
     }
 
+    /**
+     * Resets team stats for a match (used before re-scoring)
+     * @param {Match} match - Match object
+     */
     resetMatchStats(match) {
         const team1 = this.tournament.teams.get(match.team1Id);
         const team2 = this.tournament.teams.get(match.team2Id);
@@ -298,6 +335,10 @@ class CorrectionView {
         }
     }
 
+    /**
+     * Updates team stats based on match score
+     * @param {Match} match - Match object
+     */
     updateMatchStats(match) {
         if (!match.isPlayed) {
             return;
@@ -325,6 +366,9 @@ class CorrectionView {
         }
     }
 
+    /**
+     * Regenerates bracket with new qualifications after pool score changes
+     */
     regenerateBracket() {
         try {
             // Reset bracket
@@ -350,6 +394,10 @@ class CorrectionView {
         }
     }
 
+    /**
+     * Displays a temporary success notification
+     * @param {string} message - Message to display
+     */
     showSuccessMessage(message) {
         // Simple success notification
         const notification = document.createElement('div');
@@ -363,6 +411,9 @@ class CorrectionView {
         }, 3000);
     }
 
+    /**
+     * Re-renders the view while preserving state
+     */
     rerenderView() {
         const mainContent = document.getElementById('main-content');
         if (mainContent) {
