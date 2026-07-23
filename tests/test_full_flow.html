@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Full Flow</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/utils.js"></script>
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Bracket.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+    <script src="../js/managers/StorageManager.js"></script>
+    <script src="../js/components/Button.js"></script>
+    <script src="../js/components/Form.js"></script>
+    <script src="../js/views/SetupView.js"></script>
+</head>
+<body>
+    <div style="padding: 20px; background: #e8f4f8; border-bottom: 2px solid #333;">
+        <h1 style="margin: 0;">Test Flow - Pool Count Feature</h1>
+        <p style="margin: 5px 0 0 0;">Étape actuelle: <strong id="current-step"></strong></p>
+    </div>
+    <div id="app"></div>
+    <script>
+        // Mock app global
+        const app = {
+            renderView: function(view) {
+                document.getElementById('app').innerHTML = view.render();
+                document.getElementById('current-step').textContent = view.step;
+            }
+        };
+
+        // Créer une vue avec des données de test
+        const setupView = new SetupView(null);
+        setupView.tempTournamentName = "Tournoi de Test";
+        setupView.tempQualifiedCount = 8;
+
+        // Ajouter des équipes automatiquement
+        const teamCount = 20;
+        for (let i = 1; i <= teamCount; i++) {
+            setupView.tempTeams.push(`Équipe ${i}`);
+        }
+
+        // Commencer au format
+        setupView.step = 'format';
+
+        // Navigation helper
+        function goToStep(step) {
+            setupView.step = step;
+            app.renderView(setupView);
+        }
+
+        // Test automatique des étapes
+        console.log('=== Test Flow ===');
+        console.log('Teams:', setupView.tempTeams.length);
+        console.log('Qualified:', setupView.tempQualifiedCount);
+
+        // Test getMinPoolsForQualified
+        const minPools = setupView.getMinPoolsForQualified(8);
+        console.log('Min pools for 8 qualified:', minPools);
+
+        // Test calculateDistribution
+        console.log('\nTesting distributions for 20 teams:');
+        for (let i = 3; i <= 5; i++) {
+            const dist = setupView.calculateDistribution(20, i);
+            console.log(`  ${i} pools:`, dist || 'INVALID');
+        }
+
+        // Render initial view
+        app.renderView(setupView);
+    </script>
+</body>
+</html>

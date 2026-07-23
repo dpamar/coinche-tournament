@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Pool Count</title>
+    <script src="../js/utils.js"></script>
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Bracket.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+    <script src="../js/managers/StorageManager.js"></script>
+    <script src="../js/views/SetupView.js"></script>
+    <script src="../js/components/Button.js"></script>
+    <script src="../js/components/Form.js"></script>
+</head>
+<body>
+    <h1>Test Pool Count Logic</h1>
+    <div id="output"></div>
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(msg) {
+            output.innerHTML += msg + '<br>';
+        }
+        
+        // Créer une vue de setup avec un faux tournoi
+        const view = new SetupView(null);
+        view.tempTournamentName = "Test Tournament";
+        view.tempQualifiedCount = 8;
+        
+        // Test avec 20 équipes
+        log('<h2>Test avec 20 équipes, 8 qualifiés</h2>');
+        for (let i = 1; i <= 20; i++) {
+            view.tempTeams.push(`Team ${i}`);
+        }
+        
+        const minPools = view.getMinPoolsForQualified(8);
+        log(`Minimum de poules requis: ${minPools}`);
+        
+        const maxPools = Math.floor(20 / 4);
+        log(`Maximum de poules possibles: ${maxPools}`);
+        
+        log('<h3>Options valides:</h3>');
+        for (let poolCount = minPools; poolCount <= maxPools; poolCount++) {
+            const dist = view.calculateDistribution(20, poolCount);
+            if (dist) {
+                log(`${poolCount} poules: ${dist}`);
+                const sizes = view.calculatePoolSizesForCount(20, poolCount);
+                log(`  → Tailles: [${sizes.join(', ')}]`);
+            } else {
+                log(`${poolCount} poules: INVALIDE`);
+            }
+        }
+        
+        // Test avec 16 équipes
+        log('<h2>Test avec 16 équipes, 8 qualifiés</h2>');
+        view.tempTeams = [];
+        for (let i = 1; i <= 16; i++) {
+            view.tempTeams.push(`Team ${i}`);
+        }
+        
+        const minPools16 = view.getMinPoolsForQualified(8);
+        log(`Minimum de poules requis: ${minPools16}`);
+        
+        const maxPools16 = Math.floor(16 / 4);
+        log(`Maximum de poules possibles: ${maxPools16}`);
+        
+        log('<h3>Options valides:</h3>');
+        for (let poolCount = minPools16; poolCount <= maxPools16; poolCount++) {
+            const dist = view.calculateDistribution(16, poolCount);
+            if (dist) {
+                log(`${poolCount} poules: ${dist}`);
+                const sizes = view.calculatePoolSizesForCount(16, poolCount);
+                log(`  → Tailles: [${sizes.join(', ')}]`);
+            } else {
+                log(`${poolCount} poules: INVALIDE`);
+            }
+        }
+    </script>
+</body>
+</html>

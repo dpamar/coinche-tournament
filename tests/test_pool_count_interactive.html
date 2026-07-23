@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Pool Count Interactive</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/utils.js"></script>
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Bracket.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+    <script src="../js/managers/StorageManager.js"></script>
+    <script src="../js/components/Button.js"></script>
+    <script src="../js/components/Form.js"></script>
+    <script src="js/views/SetupView.js"></script>
+</head>
+<body>
+    <div id="app"></div>
+    <script>
+        // Global app mock
+        const app = {
+            renderView: function(view) {
+                document.getElementById('app').innerHTML = view.render();
+            }
+        };
+
+        // Créer une vue avec des données de test
+        const setupView = new SetupView(null);
+        setupView.tempTournamentName = "Tournoi de Test";
+        setupView.tempQualifiedCount = 8;
+
+        // Ajouter 20 équipes
+        for (let i = 1; i <= 20; i++) {
+            setupView.tempTeams.push(`Équipe ${i}`);
+        }
+
+        // Aller à l'étape pool-count
+        setupView.step = 'pool-count';
+
+        // Render
+        app.renderView(setupView);
+    </script>
+</body>
+</html>

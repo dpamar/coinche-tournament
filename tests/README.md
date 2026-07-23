@@ -54,6 +54,28 @@ Ce dossier contient tous les fichiers de test pour l'application de gestion de t
   - Teste le passage automatique à la phase bracket
   - Simule un tournoi complet de bout en bout
 
+### Tests du choix du nombre de poules (Nouvelle fonctionnalité)
+
+- **test_pool_count.html** - Test Logique de Choix du Nombre de Poules
+  - Teste les méthodes de calcul des options de poules
+  - Vérifie les contraintes (poules de 4-5, nombre pair de poules de 5)
+  - Teste getMinPoolsForQualified(), calculateDistribution(), calculatePoolSizesForCount()
+
+- **test_pool_count_interactive.html** - Test Interactif du Choix de Poules
+  - Interface interactive pour tester le choix du nombre de poules
+  - Permet de saisir le nombre d'équipes et de voir les options disponibles
+  - Affiche la distribution et les détails pour chaque option
+
+- **test_pool_scenarios.html** - Test des Scénarios de Poules
+  - Teste différents scénarios réels (8, 12, 16, 18, 20, 24 équipes)
+  - Vérifie que les options proposées sont valides et cohérentes
+  - Affiche un rapport détaillé pour chaque scénario
+
+- **test_full_flow.html** - Test du Flux Complet (Setup avec Choix de Poules)
+  - Teste le flux complet : Teams → Pool Count → Format → Pools
+  - Simule l'interaction utilisateur avec le nouveau flux
+  - Vérifie que toutes les étapes s'enchaînent correctement
+
 ### Tests d'import/export
 
 - **test-export-import.html** - Test Export/Import
@@ -78,7 +100,13 @@ Ce dossier contient tous les fichiers de test pour l'application de gestion de t
   - Script Node.js pour vérifier la logique des brackets
   - Calcule et affiche les configurations attendues
   - Valide le nombre de rounds pour différentes tailles de tournoi
-  - Exécution : `node verify-implementation.js`
+  - Exécution : `node tests/verify-implementation.js`
+
+- **test_validation.js** - Script de validation du choix de poules
+  - Valide la logique de calcul du nombre de poules
+  - Teste plusieurs scénarios avec différents nombres d'équipes
+  - Affiche un rapport de test automatisé
+  - Exécution : `node tests/test_validation.js`
 
 ## Utilisation
 

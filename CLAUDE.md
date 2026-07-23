@@ -99,6 +99,16 @@ SetupView.handleAddTeam()
   → refreshView()
 ```
 
+### Choix du nombre de poules (Nouveau flux)
+```
+SetupView.goToPoolCount()
+  → renderPoolCount()
+    → calculateDistribution(teamCount, poolCount) pour chaque option
+  → selectPoolCount(count)
+  → goToFormat()
+    → renderFormat() avec getQualificationDescription(poolCount, qualifiedCount)
+```
+
 ### Phase de poules
 ```
 SetupView.startTournament()
@@ -252,6 +262,12 @@ generateRound(teams) {
 2. Modifier `Bracket.js` : supporter le nouveau nombre d'équipes
 3. Adapter `getRoundName()` pour les nouveaux rounds
 
+### Modifier le choix du nombre de poules
+1. `SetupView.calculateDistribution(teamCount, poolCount)` : logique de validation
+2. `SetupView.getMinPoolsForQualified(qualifiedCount)` : contraintes minimales
+3. `SetupView.calculatePoolSizesForCount(teamCount, poolCount)` : génération des tailles
+4. `SetupView.getQualificationDescription(poolCount, qualifiedCount)` : description des règles
+
 ### Changer les critères de classement
 Modifier `Pool.getRanking()` et `Tournament.getQualifiedTeams()`
 
@@ -298,6 +314,13 @@ location.reload()
 - **Classement** : O(n log n) où n = nombre d'équipes dans la poule
 - **Qualification** : O(p log p) où p = nombre de poules
 - **Bracket** : O(1) pour la génération de chaque round
+
+## 🚀 Améliorations récentes
+
+- [x] **Choix du nombre de poules** : l'utilisateur peut choisir librement le nombre de poules
+- [x] **Flux réorganisé** : Teams → Pool Count → Format → Pools (ordre logique)
+- [x] **Interface améliorée** : page d'organisation des poules avec stats visuelles
+- [x] **Descriptions dynamiques** : qualification adaptée au nombre de poules choisi
 
 ## 🚀 Améliorations possibles
 

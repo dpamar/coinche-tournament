@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Pool Count Scenarios</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-case { margin: 20px 0; padding: 15px; background: #f5f5f5; border-left: 4px solid #333; }
+        .test-case h3 { margin-top: 0; }
+        .result { margin-left: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+    <script src="../js/utils.js"></script>
+    <script src="../js/models/Team.js"></script>
+    <script src="../js/models/Match.js"></script>
+    <script src="../js/models/Pool.js"></script>
+    <script src="../js/models/Bracket.js"></script>
+    <script src="../js/models/Tournament.js"></script>
+    <script src="../js/managers/StorageManager.js"></script>
+    <script src="js/components/Button.js"></script>
+    <script src="js/components/Form.js"></script>
+    <script src="js/views/SetupView.js"></script>
+</head>
+<body>
+    <h1>Test des scénarios de choix de poules</h1>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+
+        function log(html) {
+            results.innerHTML += html;
+        }
+
+        function testScenario(teamCount, qualifiedCount, description) {
+            log(`<div class="test-case"><h3>${description}</h3>`);
+            log(`<p><strong>Configuration :</strong> ${teamCount} équipes, ${qualifiedCount} qualifiés</p>`);
+
+            const view = new SetupView(null);
+            view.tempTournamentName = "Test";
+            view.tempQualifiedCount = qualifiedCount;
+
+            for (let i = 1; i <= teamCount; i++) {
+                view.tempTeams.push(`Team ${i}`);
+            }
+
+            const minPools = view.getMinPoolsForQualified(qualifiedCount);
+            const maxPools = Math.floor(teamCount / 4);
+
+            log(`<p><strong>Poules possibles :</strong> de ${minPools} à ${maxPools}</p>`);
+
+            const validOptions = [];
+            for (let poolCount = minPools; poolCount <= maxPools; poolCount++) {
+                const dist = view.calculateDistribution(teamCount, poolCount);
+                if (dist) {
+                    validOptions.push({ count: poolCount, dist });
+                    const sizes = view.calculatePoolSizesForCount(teamCount, poolCount);
+                    log(`<div class="result success">✓ ${poolCount} poules: ${dist} → [${sizes.join(', ')}]</div>`);
+                } else {
+                    log(`<div class="result error">✗ ${poolCount} poules: INVALIDE</div>`);
+                }
+            }
+
+            if (validOptions.length === 0) {
+                log(`<p class="error">⚠ Aucune option valide trouvée!</p>`);
+            } else {
+                log(`<p class="success">✓ ${validOptions.length} option(s) valide(s)</p>`);
+            }
+
+            log('</div>');
+        }
+
+        // Scénarios de test
+        testScenario(20, 8, "Cas demandé : 20 équipes, 8 qualifiés");
+        testScenario(16, 8, "Cas demandé : 16 équipes, 8 qualifiés");
+        testScenario(12, 4, "Petit tournoi : 12 équipes, 4 qualifiés");
+        testScenario(24, 8, "Tournoi moyen : 24 équipes, 8 qualifiés");
+        testScenario(32, 16, "Grand tournoi : 32 équipes, 16 qualifiés");
+        testScenario(18, 8, "Cas délicat : 18 équipes, 8 qualifiés");
+        testScenario(22, 8, "Cas délicat : 22 équipes, 8 qualifiés");
+    </script>
+</body>
+</html>

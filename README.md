@@ -5,6 +5,7 @@ Application web de gestion de tournois de coinche avec phase de poules et phase 
 ## 🎯 Fonctionnalités
 
 - **Inscription progressive des équipes** : ajoutez les équipes au fur et à mesure sans connaître le nombre total à l'avance
+- **Choix du nombre de poules** : configurez librement le nombre de poules selon vos besoins (ex: 20 équipes → 4 ou 5 poules)
 - **Phase de poules** : organisation automatique en poules de 4 ou 5 équipes avec matches inter-poules
 - **Classement automatique** : victoires > goal average > points marqués
 - **Phase éliminatoire** : brackets de 4, 8, 16 ou 32 équipes selon le nombre de qualifiés
@@ -44,23 +45,29 @@ Ouvrir `index.html` dans un navigateur (certaines fonctionnalités peuvent ne pa
 2. Entrer le nom du tournoi
 3. Ajouter les équipes une par une (nombre pair requis)
 
-### 2. Choisir le format
-- **4 équipes** : Demi-finales directes (8-14 équipes)
-- **8 équipes** : Quarts de finale (≥16 équipes)
-- **16 équipes** : Huitièmes de finale (≥24 équipes)
-- **32 équipes** : Seizièmes de finale (≥48 équipes)
+### 2. Choisir le nombre de poules
+- Configurez librement le nombre de poules souhaité
+- Exemple : 20 équipes → 4 poules de 5 OU 5 poules de 4
+- Visualisation de la distribution avant validation
 
-### 3. Organiser les poules
-- Les poules de 5 sont créées en premier
-- Distribution automatique ou mélange manuel
+### 3. Choisir le format de qualification
+- **4 équipes** : Demi-finales directes
+- **8 équipes** : Quarts de finale
+- **16 équipes** : Huitièmes de finale
+- **32 équipes** : Seizièmes de finale
+- Description adaptée au nombre de poules choisi
+
+### 4. Organiser les poules
+- Distribution automatique des équipes
+- Possibilité de mélanger pour varier la composition
 - Validation de la configuration
 
-### 4. Phase de poules
+### 5. Phase de poules
 - Saisir les scores de chaque match
 - Consulter les classements en temps réel
 - Les poules de 5 jouent des matches inter-poules
 
-### 5. Phase éliminatoire
+### 6. Phase éliminatoire
 - Les meilleures équipes se qualifient automatiquement
 - Tableau à élimination directe
 - Podium final avec 1er, 2ème et 3èmes

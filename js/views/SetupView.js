@@ -21,6 +21,7 @@ class SetupView {
         }
 
         this.tempPools = [];
+        this.tempPoolCount = null;
     }
 
     /**
@@ -40,6 +41,8 @@ class SetupView {
                 return this.renderCreate();
             case 'teams':
                 return this.renderTeams();
+            case 'pool-count':
+                return this.renderPoolCount();
             case 'format':
                 return this.renderFormat();
             case 'pools':
@@ -157,7 +160,7 @@ class SetupView {
 
                     <div class="form-actions setup-navigation">
                         ${createSecondaryButton('Retour', 'setupView.goToCreate()')}
-                        ${createPrimaryButton('Choisir le Format', 'setupView.goToFormat()')}
+                        ${createPrimaryButton('Nombre de Poules', 'setupView.goToPoolCount()')}
                     </div>
                 </div>
             </div>
@@ -165,33 +168,19 @@ class SetupView {
     }
 
     /**
-     * Choix du format de phase finale
+     * Choix du format de phase finale (après avoir choisi le nombre de poules)
      * @returns {string} HTML du choix du format
      */
     renderFormat() {
         const teamCount = this.tempTeams.length;
-        const poolCount = Math.ceil(teamCount / 4);
-        const maxQualified = Math.min(poolCount * 3, teamCount); // Max: 3 par poule
+        const poolCount = this.tempPoolCount;
 
-        // Calculer les options possibles
+        // Calculer les options possibles selon le nombre de poules
         const options = [];
 
-        // Option 4 équipes (demi-finales) pour les petits tournois (8-14 équipes)
-        if (teamCount >= 8 && teamCount <= 14) {
-            let desc = '';
-            if (teamCount === 8) {
-                // 2 poules de 4
-                desc = 'Les 2 premiers + 2 meilleurs seconds';
-            } else if (teamCount === 10) {
-                // 2 poules de 5
-                desc = 'Les 2 premiers + 2 meilleurs seconds';
-            } else if (teamCount === 12) {
-                // 3 poules de 4
-                desc = 'Les 3 premiers + meilleur second';
-            } else if (teamCount === 14) {
-                // 1 poule de 4 + 2 poules de 5
-                desc = 'Les 3 premiers + meilleur second';
-            }
+        // Option 4 équipes (demi-finales)
+        if (poolCount >= 2) {
+            let desc = this.getQualificationDescription(poolCount, 4);
             options.push({
                 value: 4,
                 label: '4 équipes - Demi-finales',
@@ -201,24 +190,17 @@ class SetupView {
 
         // Option 8 équipes (quarts de finale)
         if (poolCount >= 3) {
+            let desc = this.getQualificationDescription(poolCount, 8);
             options.push({
                 value: 8,
                 label: '8 équipes - Quarts de finale',
-                description: `Les ${Math.min(poolCount, 8)} premiers${poolCount >= 8 ? '' : ' + ' + (8 - poolCount) + ' meilleurs seconds'}`
+                description: desc
             });
         }
 
         // Option 16 équipes (huitièmes de finale)
-        if (poolCount >= 6 || (poolCount >= 4 && maxQualified >= 16)) {
-            const needed = 16;
-            let desc = '';
-            if (poolCount >= 16) {
-                desc = 'Les 16 premiers';
-            } else if (poolCount >= 8) {
-                desc = `Les ${poolCount} premiers + ${poolCount} seconds`;
-            } else {
-                desc = `Les ${poolCount} premiers + ${poolCount} seconds + ${needed - poolCount * 2} meilleurs troisièmes`;
-            }
+        if (poolCount >= 6) {
+            let desc = this.getQualificationDescription(poolCount, 16);
             options.push({
                 value: 16,
                 label: '16 équipes - Huitièmes de finale',
@@ -226,13 +208,19 @@ class SetupView {
             });
         }
 
-        // Option 32 équipes si assez d'équipes
+        // Option 32 équipes
         if (poolCount >= 11) {
+            let desc = this.getQualificationDescription(poolCount, 32);
             options.push({
                 value: 32,
                 label: '32 équipes - 1/16e de finale',
-                description: 'Format étendu avec plus d\'équipes qualifiées'
+                description: desc
             });
+        }
+
+        // Sélectionner par défaut la première option si aucune n'est sélectionnée
+        if (this.tempQualifiedCount === null && options.length > 0) {
+            this.tempQualifiedCount = options[0].value;
         }
 
         const optionsHtml = options.map(opt => `
@@ -259,8 +247,103 @@ class SetupView {
                     </div>
 
                     <div class="form-actions setup-navigation">
-                        ${createSecondaryButton('Retour', 'setupView.goToTeams()')}
+                        ${createSecondaryButton('Retour', 'setupView.goToPoolCount()')}
                         ${createPrimaryButton('Suivant - Organisation des Poules', 'setupView.goToPools()')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Génère la description de la qualification selon le nombre de poules
+     * @param {number} poolCount - Nombre de poules
+     * @param {number} qualifiedCount - Nombre d'équipes qualifiées
+     * @returns {string} Description de la qualification
+     */
+    getQualificationDescription(poolCount, qualifiedCount) {
+        if (qualifiedCount <= poolCount) {
+            // Seulement les premiers de poule
+            return `Les ${qualifiedCount} premiers`;
+        } else if (qualifiedCount <= poolCount * 2) {
+            // Premiers + seconds
+            const secondsNeeded = qualifiedCount - poolCount;
+            if (secondsNeeded === poolCount) {
+                return `Les ${poolCount} premiers + ${poolCount} seconds`;
+            } else {
+                return `Les ${poolCount} premiers + ${secondsNeeded} meilleurs seconds`;
+            }
+        } else if (qualifiedCount <= poolCount * 3) {
+            // Premiers + seconds + troisièmes
+            const thirdsNeeded = qualifiedCount - poolCount * 2;
+            if (thirdsNeeded === poolCount) {
+                return `Les ${poolCount} premiers + ${poolCount} seconds + ${poolCount} troisièmes`;
+            } else {
+                return `Les ${poolCount} premiers + ${poolCount} seconds + ${thirdsNeeded} meilleurs troisièmes`;
+            }
+        } else {
+            return `Les ${qualifiedCount} meilleures équipes`;
+        }
+    }
+
+    /**
+     * Choix du nombre de poules (AVANT le format)
+     * @returns {string} HTML du choix du nombre de poules
+     */
+    renderPoolCount() {
+        const teamCount = this.tempTeams.length;
+
+        const options = [];
+
+        // Calculer les options valides
+        // Le nombre de poules peut varier selon la contrainte des poules de 4 ou 5
+        const minPools = 2; // Minimum 2 poules
+        const maxPools = Math.floor(teamCount / 4);
+
+        for (let poolCount = minPools; poolCount <= maxPools; poolCount++) {
+            const distribution = this.calculateDistribution(teamCount, poolCount);
+            if (distribution) {
+                options.push({
+                    count: poolCount,
+                    distribution: distribution
+                });
+            }
+        }
+
+        // Sélectionner par défaut l'option du milieu ou la première si tempPoolCount n'est pas défini
+        if (this.tempPoolCount === null && options.length > 0) {
+            this.tempPoolCount = options[Math.floor(options.length / 2)].count;
+        }
+
+        const optionsHtml = options.map(opt => {
+            const isSelected = this.tempPoolCount === opt.count;
+            return `
+                <div class="format-option ${isSelected ? 'selected' : ''}"
+                     onclick="setupView.selectPoolCount(${opt.count})">
+                    <input type="radio" name="pool-count" value="${opt.count}"
+                           ${isSelected ? 'checked' : ''}>
+                    <div class="format-details">
+                        <strong>${opt.count} poules</strong>
+                        <p>${escapeHtml(opt.distribution)}</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="setup-view">
+                <div class="setup-step">
+                    <h2>Choisir le nombre de poules</h2>
+                    <p class="setup-subtitle">Tournoi : ${escapeHtml(this.tempTournamentName)} - ${teamCount} équipes</p>
+
+                    <div class="format-selection">
+                        <p class="form-hint">Choisissez comment organiser vos équipes en poules :</p>
+                        ${optionsHtml}
+                    </div>
+
+                    <div class="form-actions setup-navigation">
+                        ${createSecondaryButton('Retour', 'setupView.goToTeams()')}
+                        ${createPrimaryButton('Suivant - Format de Qualification', 'setupView.goToFormat()')}
                     </div>
                 </div>
             </div>
@@ -272,6 +355,21 @@ class SetupView {
      * @returns {string} HTML de l'organisation en poules
      */
     renderPools() {
+        // Calculer les statistiques
+        const poolSizes = this.tempPools.map(p => p.length);
+        const uniqueSizes = [...new Set(poolSizes)];
+        const poolsOf4 = poolSizes.filter(s => s === 4).length;
+        const poolsOf5 = poolSizes.filter(s => s === 5).length;
+
+        let distributionText = '';
+        if (poolsOf4 > 0 && poolsOf5 > 0) {
+            distributionText = `${poolsOf4} poules de 4 équipes + ${poolsOf5} poules de 5 équipes`;
+        } else if (poolsOf4 > 0) {
+            distributionText = `${poolsOf4} poules de 4 équipes`;
+        } else if (poolsOf5 > 0) {
+            distributionText = `${poolsOf5} poules de 5 équipes`;
+        }
+
         let poolsHtml = '';
         if (this.tempPools.length > 0) {
             poolsHtml = `
@@ -294,21 +392,41 @@ class SetupView {
             <div class="setup-view">
                 <div class="setup-step">
                     <h2>Organisation en Poules</h2>
-                    <p class="setup-subtitle">Tournoi : ${escapeHtml(this.tempTournamentName)} - ${this.tempTeams.length} équipes</p>
+                    <p class="setup-subtitle">Tournoi : ${escapeHtml(this.tempTournamentName)}</p>
+
+                    <div class="dashboard-stats">
+                        <div class="stat-card">
+                            <div class="stat-value">${this.tempTeams.length}</div>
+                            <div class="stat-label">Équipes</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${this.tempPools.length}</div>
+                            <div class="stat-label">Poules</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${this.tempQualifiedCount}</div>
+                            <div class="stat-label">Qualifiés</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${uniqueSizes.join('-')}</div>
+                            <div class="stat-label">Taille</div>
+                        </div>
+                    </div>
 
                     <div class="pools-info">
-                        <p>
-                            <strong>${this.tempPools.length} poules</strong> créées
-                            ${this.tempPools.length > 0 ? `(${this.tempPools.map(p => p.length).join(', ')} équipes par poule)` : ''}
-                        </p>
+                        <p>${distributionText}</p>
                     </div>
 
                     ${poolsHtml}
 
+                    <div class="info-message">
+                        💡 Vous pouvez mélanger les équipes pour varier la composition des poules
+                    </div>
+
                     <div class="form-actions setup-navigation">
-                        ${createSecondaryButton('Retour', 'setupView.goToTeams()')}
-                        ${createSecondaryButton('Mélanger', 'setupView.shufflePools()')}
-                        ${createPrimaryButton('Démarrer le Tournoi', 'setupView.startTournament()')}
+                        ${createSecondaryButton('Retour', 'setupView.goToFormat()')}
+                        ${createSecondaryButton('🔀 Mélanger', 'setupView.shufflePools()')}
+                        ${createPrimaryButton('🚀 Démarrer le Tournoi', 'setupView.startTournament()')}
                     </div>
                 </div>
             </div>
@@ -346,9 +464,9 @@ class SetupView {
     }
 
     goToFormat() {
-        // Validation : le nombre d'équipes doit être pair
-        if (this.tempTeams.length % 2 !== 0) {
-            alert('Le nombre d\'équipes doit être pair');
+        // Vérifier qu'un nombre de poules a été choisi
+        if (this.tempPoolCount === null) {
+            alert('Veuillez choisir un nombre de poules');
             return;
         }
 
@@ -361,7 +479,29 @@ class SetupView {
         this.refreshView();
     }
 
+    goToPoolCount() {
+        // Validation : le nombre d'équipes doit être pair
+        if (this.tempTeams.length % 2 !== 0) {
+            alert('Le nombre d\'équipes doit être pair');
+            return;
+        }
+
+        this.step = 'pool-count';
+        this.refreshView();
+    }
+
+    selectPoolCount(count) {
+        this.tempPoolCount = count;
+        this.refreshView();
+    }
+
     goToPools() {
+        // Vérifier qu'un format a été choisi
+        if (this.tempQualifiedCount === null) {
+            alert('Veuillez choisir un format de qualification');
+            return;
+        }
+
         this.step = 'pools';
 
         // Générer les poules
@@ -463,6 +603,78 @@ class SetupView {
     }
 
     /**
+     * Retourne le nombre minimum de poules nécessaire pour le nombre de qualifiés
+     * @param {number} qualifiedCount - Nombre d'équipes qualifiées
+     * @returns {number} Nombre minimum de poules
+     */
+    getMinPoolsForQualified(qualifiedCount) {
+        if (qualifiedCount <= 4) {
+            return 2;
+        } else if (qualifiedCount <= 8) {
+            return 3;
+        } else if (qualifiedCount <= 16) {
+            return 6;
+        } else {
+            return 11;
+        }
+    }
+
+    /**
+     * Calcule la distribution des équipes dans les poules
+     * @param {number} teamCount - Nombre d'équipes
+     * @param {number} poolCount - Nombre de poules
+     * @returns {string|null} Description de la distribution ou null si invalide
+     */
+    calculateDistribution(teamCount, poolCount) {
+        const poolSizes = this.calculatePoolSizesForCount(teamCount, poolCount);
+        if (!poolSizes) return null;
+
+        const count4 = poolSizes.filter(s => s === 4).length;
+        const count5 = poolSizes.filter(s => s === 5).length;
+
+        let description = '';
+        if (count4 > 0 && count5 > 0) {
+            description = `${count4} poules de 4 + ${count5} poules de 5`;
+        } else if (count4 > 0) {
+            description = `${count4} poules de 4`;
+        } else {
+            description = `${count5} poules de 5`;
+        }
+
+        return description;
+    }
+
+    /**
+     * Génère l'array de tailles de poules pour un nombre de poules donné
+     * @param {number} teamCount - Nombre d'équipes
+     * @param {number} poolCount - Nombre de poules
+     * @returns {Array<number>|null} Tailles des poules ou null si invalide
+     */
+    calculatePoolSizesForCount(teamCount, poolCount) {
+        const avgSize = teamCount / poolCount;
+
+        // Vérifier que la taille moyenne est entre 4 et 5
+        if (avgSize < 4 || avgSize > 5) return null;
+
+        // Calculer le nombre de poules de 5 et de 4
+        const fiveCount = teamCount - (poolCount * 4);
+        const fourCount = poolCount - fiveCount;
+
+        // Vérifier que fiveCount est valide (0 ou pair)
+        if (fiveCount < 0 || (fiveCount > 0 && fiveCount % 2 !== 0)) return null;
+
+        const poolSizes = [];
+        for (let i = 0; i < fiveCount; i++) {
+            poolSizes.push(5);
+        }
+        for (let i = 0; i < fourCount; i++) {
+            poolSizes.push(4);
+        }
+
+        return poolSizes;
+    }
+
+    /**
      * Calcule les tailles optimales des poules
      * Objectif : des poules de 4 ou 5 équipes
      * Si pas divisible par 4, créer des poules de 5 (minimum 2 poules de 5)
@@ -470,6 +682,10 @@ class SetupView {
      * @returns {Array<number>} Tailles des poules (ex: [4, 4, 5, 5])
      */
     calculatePoolSizes(teamCount) {
+        // Si un nombre de poules a été choisi, l'utiliser
+        if (this.tempPoolCount !== null) {
+            return this.calculatePoolSizesForCount(teamCount, this.tempPoolCount);
+        }
         const poolSizes = [];
 
         // Contrainte : nombre minimum de poules selon le nombre d'équipes qualifiées
